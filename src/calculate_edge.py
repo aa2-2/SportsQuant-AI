@@ -26,6 +26,7 @@ from bet_log import log_flag
 from bet_policy import FLAT_STAKE, evaluate_bet, expected_value, kelly_stake
 from explain import full_breakdown, load_raw_model, strength_label
 from report import build_report
+from teams import format_game_time
 from hr_model import hr_model_trusted, load_hr_model, predict_game_hrs
 from sim.live_board import board_total_hrs, hr_board_for_lineup, load_sim_rates
 from totals import load_totals_model, predict_total, prob_over, totals_model_trusted
