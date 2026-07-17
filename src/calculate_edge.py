@@ -176,7 +176,7 @@ if __name__ == "__main__":
                 pass  # fall back to #id display
         return names
 
-    player_names = resolve_player_names(schedule)
+    player_names = resolve_player_names(scheduled)
     if player_names:
         print(f"Resolved {len(player_names)} lineup player names")
 
