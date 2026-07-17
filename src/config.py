@@ -39,3 +39,24 @@ FEATURE_COLUMNS = [
 ]
 
 TARGET_COLUMN = "home_win"
+
+# Features for the run-TOTALS model — run-environment signals rather
+# than the win model's differential signals. The totals model is only
+# allowed to bet if, trained on these, it beats the always-predict-
+# the-average baseline (see train_totals_model.py / totals.py).
+TOTALS_FEATURE_COLUMNS = [
+    "home_team_runs_scored_avg",
+    "home_team_runs_allowed_avg",
+    "away_team_runs_scored_avg",
+    "away_team_runs_allowed_avg",
+    "park_run_factor",
+    "home_pitcher_era",
+    "away_pitcher_era",
+    "hr_park_factor",
+    "temp",
+    "signed_wind",
+    "home_team_hr_rate",
+    "away_team_hr_rate",
+    "home_team_k_rate",
+    "away_team_k_rate",
+]

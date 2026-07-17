@@ -19,7 +19,7 @@ Key design points:
 """
 import pandas as pd
 
-from config import FEATURE_COLUMNS
+from config import FEATURE_COLUMNS, TOTALS_FEATURE_COLUMNS
 from features.pitcher_era import convert_innings_pitched
 from features.weather import calculate_signed_wind, parse_wind_effect, parse_wind_speed
 from mlb_api import fetch_live_feed, fetch_schedule
@@ -224,6 +224,8 @@ def get_latest_team_stats(features_df):
     features_df["date"] = pd.to_datetime(features_df["date"])
 
     stat_map = {
+        "runs_scored_avg": "team_runs_scored_avg",
+        "runs_allowed_avg": "team_runs_allowed_avg",
         "elo": "team_elo",
         "avg_exit_velo": "team_avg_exit_velo",
         "hr_rate": "team_hr_rate",
@@ -231,10 +233,13 @@ def get_latest_team_stats(features_df):
         "bullpen_fatigue": "team_bullpen_fatigue",
     }
 
+    available = {t: s for t, s in stat_map.items()
+                 if f"home_{s}" in features_df.columns and f"away_{s}" in features_df.columns}
+
     views = []
     for side in ["home", "away"]:
         columns = {f"{side}_team": "team"}
-        columns.update({f"{side}_{source}": target for target, source in stat_map.items()})
+        columns.update({f"{side}_{source}": target for target, source in available.items()})
         view = features_df[["date"] + list(columns.keys())].rename(columns=columns)
         views.append(view)
 
@@ -438,4 +443,64 @@ def build_game_feature_row(game, ctx):
         live_weather=live_weather,
     )
     return row, live_weather
+
+
+def get_park_run_factor(features_df, home_team):
+    """Most recent park run factor for a team's home park (1.0 if unknown)."""
+    if "park_run_factor" not in features_df.columns:
+        return 1.0
+    home_games = features_df[features_df["home_team"] == home_team]
+    if len(home_games) == 0:
+        return 1.0
+    home_games = home_games.copy()
+    home_games["date"] = pd.to_datetime(home_games["date"])
+    return float(home_games.sort_values("date")["park_run_factor"].iloc[-1])
+
+
+def build_totals_row(win_row, home_team, away_team, latest_stats, features_df):
+    """
+    Feature row for the TOTALS model. Reuses everything the win row
+    already computed (pitcher ERAs, weather, park HR factor, team
+    HR/K rates) and adds the run-environment inputs.
+    """
+    win = win_row.iloc[0]
+    home_stats = latest_stats.loc[home_team]
+    away_stats = latest_stats.loc[away_team]
+
+    league_runs = 4.45  # fallback only, used when run-env stats absent
+    row = pd.DataFrame([{
+        "home_team_runs_scored_avg": home_stats.get("runs_scored_avg", league_runs),
+        "home_team_runs_allowed_avg": home_stats.get("runs_allowed_avg", league_runs),
+        "away_team_runs_scored_avg": away_stats.get("runs_scored_avg", league_runs),
+        "away_team_runs_allowed_avg": away_stats.get("runs_allowed_avg", league_runs),
+        "park_run_factor": get_park_run_factor(features_df, home_team),
+        "home_pitcher_era": win["home_pitcher_era"],
+        "away_pitcher_era": win["away_pitcher_era"],
+        "hr_park_factor": win["hr_park_factor"],
+        "temp": win["temp"],
+        "signed_wind": win["signed_wind"],
+        "home_team_hr_rate": win["home_team_hr_rate"],
+        "away_team_hr_rate": win["away_team_hr_rate"],
+        "home_team_k_rate": win["home_team_k_rate"],
+        "away_team_k_rate": win["away_team_k_rate"],
+    }])
+    return row[TOTALS_FEATURE_COLUMNS]
+
+
+def weather_impact(model, scaler, feature_row):
+    """
+    How much the ACTUAL weather is moving this game's home win
+    probability, computed as a counterfactual: predict with the real
+    weather, predict again with weather set to neutral (the calibrated
+    training means), and return the difference in probability points.
+    Positive -> current conditions favor the HOME team.
+    """
+    real_prob = model.predict_proba(scaler.transform(feature_row))[0][1]
+
+    neutral_row = feature_row.copy()
+    neutral_row["temp"] = PLACEHOLDER_TEMP
+    neutral_row["signed_wind"] = PLACEHOLDER_SIGNED_WIND
+    neutral_prob = model.predict_proba(scaler.transform(neutral_row))[0][1]
+
+    return float(real_prob - neutral_prob)
 

@@ -29,6 +29,8 @@ from report import build_report
 from totals import load_totals_model, predict_total, prob_over, totals_model_trusted
 from live_features import (
     build_game_feature_row,
+    build_totals_row,
+    weather_impact,
     get_upcoming_schedule,
     load_prediction_context,
 )
@@ -119,15 +121,23 @@ def game_has_started(iso_utc):
 
 
 def format_game_time(iso_utc):
-    """'2026-07-16T22:10:00Z' -> '6:10 PM ET' (best effort)."""
+    """
+    '2026-07-16T22:10:00Z' -> '6:10 PM ET'.
+    Formatted manually: strftime's no-leading-zero codes are platform-
+    specific (%-I is Linux-only, %#I is Windows-only) — the old version
+    silently returned "" on Windows, which is why the site showed no
+    game times.
+    """
     if not iso_utc:
         return ""
     try:
-        from datetime import datetime, timezone
+        from datetime import datetime
         from zoneinfo import ZoneInfo
         dt = datetime.fromisoformat(str(iso_utc).replace("Z", "+00:00"))
         local = dt.astimezone(ZoneInfo("America/New_York"))
-        return local.strftime("%-I:%M %p ET") if hasattr(local, "strftime") else ""
+        hour12 = local.hour % 12 or 12
+        ampm = "AM" if local.hour < 12 else "PM"
+        return f"{hour12}:{local.minute:02d} {ampm} ET"
     except Exception:
         return ""
 
@@ -210,6 +220,8 @@ if __name__ == "__main__":
             continue
 
         model_home_prob = model.predict_proba(scaler.transform(row))[0][1]
+        w_impact = weather_impact(model, scaler, row) if live_weather else None
+        card_weather = w_impact
 
         home_implied = american_odds_to_implied_prob(game["home_odds"])
         away_implied = american_odds_to_implied_prob(game["best_away_odds"])
@@ -218,7 +230,11 @@ if __name__ == "__main__":
         home_edge = model_home_prob - home_fair
         away_edge = (1 - model_home_prob) - away_fair
 
-        weather_status = "real (live feed)" if live_weather else "placeholder (not posted yet)"
+        if live_weather:
+            weather_status = (f"real (live feed) — impact {w_impact:+.1%} on home win probability"
+                              if w_impact is not None else "real (live feed)")
+        else:
+            weather_status = "placeholder (not posted yet) — impact neutral"
 
         print(f"  Best odds: {game['best_home_bookmaker']} {game['home_odds']:+.0f} (home) "
               f"/ {game['best_away_odds']:+.0f} (away)")
@@ -247,6 +263,7 @@ if __name__ == "__main__":
             "side_fair_prob": home_fair if side_is_home else away_fair,
             "edge": edge, "tier": tier, "breakdown": breakdown,
             "weather_real": live_weather is not None,
+            "weather_impact": card_weather,
             "lineups": bool(sched_game["home_lineup"] and sched_game["away_lineup"]),
         })
 
@@ -259,7 +276,8 @@ if __name__ == "__main__":
         if totals_trusted and lines_info.get("total_points") is not None \
                 and lines_info.get("over_odds") is not None and lines_info.get("under_odds") is not None:
             line = float(lines_info["total_points"])
-            model_total = predict_total(totals_bundle, row)
+            t_row = build_totals_row(row, home, away, ctx["latest_stats"], ctx["features_df"])
+            model_total = predict_total(totals_bundle, t_row)
             p_over = prob_over(model_total, line, totals_bundle["sigma"])
 
             over_implied = american_odds_to_implied_prob(lines_info["over_odds"])

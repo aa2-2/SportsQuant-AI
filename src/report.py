@@ -57,6 +57,10 @@ ul.reasons { margin:10px 0 0 0; padding-left:18px; font-size:13px; line-height:1
 @media (max-width:640px){ .markets { grid-template-columns:1fr; } }
 ul.reasons .against { color:#8b949e; }
 .dq { margin-top:10px; font-size:12px; color:#8b949e; }
+.wchip { display:inline-block; font-size:11px; font-weight:700; padding:2px 10px; border-radius:999px; margin-left:6px; }
+.wchip.pos { background:#0f2e1c; color:#3fb950; border:1px solid #2ea043; }
+.wchip.neg { background:#3a1516; color:#f85149; border:1px solid #da3633; }
+.wchip.neu { background:#21262d; color:#8b949e; border:1px solid #30363d; }
 .footer { color:#8b949e; font-size:12px; margin-top:28px; line-height:1.6; }
 """
 
@@ -108,9 +112,7 @@ def render_totals_rec(card):
     t = card.get("totals")
     if not t:
         if card.get("totals_untrusted"):
-            return ("<div class='norec'>— disabled: totals model failed its baseline "
-                    "validation (can't out-predict the league-average total), so its "
-                    "edges would be noise</div>")
+            return None  # notice is shown once, as a banner at the top
         return "<div class='norec'>— (no totals model trained, or no total posted)</div>"
 
     bullets = (f"<ul class='reasons'>"
@@ -132,6 +134,13 @@ def render_totals_rec(card):
                 f"<span class='edge'>Edge: {t['edge']:+.1%}</span>{bullets}</div>")
     return (f"<div class='norec'>No clear value (model {t['model_total']:.1f} vs {t['line']:g}, "
             f"largest gap {t['edge']:+.1%})</div>")
+
+
+def totals_section(card):
+    rec = render_totals_rec(card)
+    if rec is None:
+        return ""
+    return f"<div class='rechead'>Total Recommendation</div>{rec}"
 
 
 def render_card(card):
@@ -178,7 +187,16 @@ def render_card(card):
         rec = (f"<div class='rec none'>Moneyline recommendation: <b>No clear value</b> "
                f"(largest gap {card['edge']:+.1%})</div>")
 
-    dq = "Weather: real (live feed)" if card["weather_real"] else "Weather: placeholder (not posted yet)"
+    w = card.get("weather_impact")
+    if card["weather_real"] and w is not None:
+        cls = "pos" if w >= 0.005 else ("neg" if w <= -0.005 else "neu")
+        arrow = "helps home" if w > 0 else ("helps away" if w < 0 else "neutral")
+        wchip = f"<span class='wchip {cls}'>weather {w:+.1%} · {arrow}</span>"
+        dq = f"Weather: real (live feed){wchip}"
+    elif card["weather_real"]:
+        dq = "Weather: real (live feed)"
+    else:
+        dq = "Weather: placeholder (not posted yet) <span class='wchip neu'>impact neutral</span>"
     dq += " &nbsp;·&nbsp; Lineups: " + ("confirmed" if card["lineups"] else "not posted")
 
     return f"""
@@ -195,8 +213,7 @@ def render_card(card):
       <div class='problabel'><span>{abbr(away)} {100 - prob_pct:.1f}%</span><span>{abbr(home)} {prob_pct:.1f}%</span></div>
       <div class='rechead'>Moneyline Recommendation</div>
       {rec}
-      <div class='rechead'>Total Recommendation</div>
-      {render_totals_rec(card)}
+      {totals_section(card)}
       <div class='dq'>{dq}</div>
     </div>"""
 
@@ -206,6 +223,14 @@ def build_report(target_date, cards, no_odds_games):
 
     high = sum(1 for c in cards if c["tier"] == "HIGH" and c.get("approved", True))
     medium = sum(1 for c in cards if c["tier"] == "MEDIUM" and c.get("approved", True))
+
+    totals_banner = ""
+    if any(c.get("totals_untrusted") for c in cards):
+        totals_banner = ("<div class='card'><b>Totals (O/U) recommendations are disabled.</b>"
+                         "<ul class='reasons'><li>The totals model failed its baseline "
+                         "validation — it can't currently out-predict the league-average "
+                         "total, so its edges would be noise. It re-enables automatically "
+                         "when a retrained model beats the baseline.</li></ul></div>")
 
     missing_html = ""
     if no_odds_games:
@@ -225,6 +250,7 @@ moneyline model vs best available market price</div>
   <div class='stat'><div class='n'>{high + medium}</div><div class='l'>Recommended</div></div>
   <div class='stat'><div class='n'>{high} High · {medium} Medium</div><div class='l'>Confidence</div></div>
 </div>
+{totals_banner}
 {''.join(render_card(c) for c in cards)}
 {missing_html}
 <div class='footer'>

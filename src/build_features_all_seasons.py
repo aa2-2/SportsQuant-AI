@@ -23,6 +23,7 @@ from features.pitcher_vs_team import add_pitcher_vs_team_era
 from features.batter_vs_pitcher import build_matchup_history, add_matchup_history_feature
 from features.elo_rating import add_elo_ratings
 from features.bullpen_fatigue import add_bullpen_fatigue
+from features.run_environment import add_park_run_factor, add_run_environment
 
 STATCAST_SEASONS = [2024, 2025, 2026]
 
@@ -45,6 +46,10 @@ if __name__ == "__main__":
 
     print("Building Elo ratings (uses full 2021-2026 game history)...")
     games_full = add_elo_ratings(games_full)
+
+    print("Building run-environment features (rolling runs, park run factor)...")
+    games_full = add_run_environment(games_full)
+    games_full = add_park_run_factor(games_full)
 
     subset = games_full[games_full["season"].isin(STATCAST_SEASONS)].copy()
     print(f"\nRestricting to {STATCAST_SEASONS[0]}-{STATCAST_SEASONS[-1]} "

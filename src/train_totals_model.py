@@ -26,7 +26,7 @@ from sklearn.model_selection import TimeSeriesSplit, cross_val_score
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from config import DATA_DIR, FEATURE_COLUMNS
+from config import DATA_DIR, TOTALS_FEATURE_COLUMNS
 
 CUTOFF_DATE = "2026-03-25"  # same holdout split as the win model
 
@@ -42,7 +42,13 @@ if __name__ == "__main__":
         )
 
     df["total_runs"] = df["home_score"] + df["away_score"]
-    X, y = df[FEATURE_COLUMNS], df["total_runs"]
+    missing = [c for c in TOTALS_FEATURE_COLUMNS if c not in df.columns]
+    if missing:
+        raise SystemExit(
+            f"Missing totals features {missing} — re-run "
+            "build_features_all_seasons.py first (run-environment features are new)."
+        )
+    X, y = df[TOTALS_FEATURE_COLUMNS], df["total_runs"]
 
     print(f"Training totals model on {len(df)} games")
     print(f"Average total: {y.mean():.2f} runs (std {y.std():.2f})")
@@ -75,8 +81,8 @@ if __name__ == "__main__":
     # then refit on everything for production.
     train = df[df["date"] < CUTOFF_DATE]
     test = df[df["date"] >= CUTOFF_DATE]
-    best_est.fit(train[FEATURE_COLUMNS], train["total_runs"])
-    residuals = test["total_runs"] - best_est.predict(test[FEATURE_COLUMNS])
+    best_est.fit(train[TOTALS_FEATURE_COLUMNS], train["total_runs"])
+    residuals = test["total_runs"] - best_est.predict(test[TOTALS_FEATURE_COLUMNS])
     sigma = float(residuals.std())
     holdout_mae = float(residuals.abs().mean())
     print(f"2026 holdout ({len(test)} games): MAE {holdout_mae:.3f}, "
@@ -91,7 +97,7 @@ if __name__ == "__main__":
         "holdout_mae": holdout_mae,
         "cv_mae": float(best_mae),
         "baseline_mae": float(baseline_mae),
-        "features": FEATURE_COLUMNS,
+        "features": TOTALS_FEATURE_COLUMNS,
     }
     joblib.dump(bundle, DATA_DIR / "totals_model.joblib")
     print(f"\nSaved to {DATA_DIR / 'totals_model.joblib'}")
