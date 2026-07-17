@@ -318,28 +318,35 @@ def get_hr_park_factor(features_df, home_team):
     return team_home_games["hr_park_factor"].iloc[-1]
 
 
-def get_lineup_power(lineup_players, batter_stats, last_n=10):
+def get_lineup_power(lineup_players, batter_stats, last_n=10, top_n=4):
     """
-    Average exit velocity and HR rate for a confirmed lineup, based on
-    each batter's last `last_n` games. `batter_stats` should be the
-    output of build_batter_game_stats(), computed ONCE by the caller —
-    the old code rebuilt it from raw Statcast for every lineup, which
-    made predictions painfully slow.
+    MIRRORS features/batter_power.py's training definition exactly:
+    each batter's rolling stats over their last `last_n` games, then
+    the TOP `top_n` batters by rolling exit velocity, averaged.
+
+    The previous version averaged the ENTIRE lineup (~84 mph) while
+    training used the top 4 (~91 mph) — a 7 mph definitional mismatch
+    that the model read as "every confirmed lineup is weak," producing
+    an entire slate of fake edges. Live features must be computed by
+    the same recipe as training features, always.
     """
     if not lineup_players:
         return PLACEHOLDER_TOP_POWER_EXIT_VELO, PLACEHOLDER_TOP_POWER_HR_RATE
 
-    exit_velos, hr_rates = [], []
+    per_batter = []
     for player in lineup_players:
         player_games = batter_stats[batter_stats["batter"] == player["id"]].tail(last_n)
         if len(player_games) == 0:
-            exit_velos.append(PLACEHOLDER_EXIT_VELO)
-            hr_rates.append(PLACEHOLDER_HR_RATE)
+            # training's neutral default for a batter with no history
+            per_batter.append({"exit_velo": 88.0, "hr_rate": 0.03})
         else:
-            exit_velos.append(player_games["avg_exit_velo"].mean())
-            hr_rates.append(player_games["home_runs"].mean())
+            per_batter.append({
+                "exit_velo": player_games["avg_exit_velo"].mean(),
+                "hr_rate": player_games["home_runs"].mean(),
+            })
 
-    return pd.Series(exit_velos).mean(), pd.Series(hr_rates).mean()
+    ranked = pd.DataFrame(per_batter).nlargest(top_n, "exit_velo")
+    return float(ranked["exit_velo"].mean()), float(ranked["hr_rate"].mean())
 
 
 def get_team_vs_pitcher_avg(lineup_players, pitcher_id, matchup_history, min_history=3):
@@ -476,11 +483,11 @@ def build_game_feature_row(game, ctx):
     Builds the FULL feature row for one schedule row (with lineups,
     matchup history, and live weather when available).
 
-    Returns (row, live_weather) — live_weather is None when the feed
-    hasn't posted conditions yet, so callers can report data quality.
+    Returns (row, weather_source) — weather_source is "live",
+    "forecast", or None, so callers can report data quality honestly.
     Raises KeyError when a team name isn't in the historical data.
     """
-    live_weather = get_live_weather(game["game_pk"])
+    weather_values, weather_source = resolve_weather(game)
 
     home_pitcher_id = get_pitcher_id_by_name(ctx["starts"], game["home_pitcher_name"])
     away_pitcher_id = get_pitcher_id_by_name(ctx["starts"], game["away_pitcher_name"])
@@ -501,9 +508,9 @@ def build_game_feature_row(game, ctx):
         away_vs_home_pitcher=get_team_vs_pitcher_avg(
             game["away_lineup"], home_pitcher_id, ctx["matchup_history"]
         ),
-        live_weather=live_weather,
+        live_weather=weather_values,
     )
-    return row, live_weather
+    return row, weather_source
 
 
 def get_park_run_factor(features_df, home_team):
