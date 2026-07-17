@@ -37,6 +37,16 @@ and is not allowed to act, until it earns it. There is also no real-money automa
 the ledger's job is to establish, in public, whether the edges are real. Sizing stays at a
 flat 1 unit; quarter-Kelly stakes are recorded in parallel for comparison but never used,
 because Kelly trusts the model's probabilities and that trust is exactly what's being tested.</p>
+<h2>The HR board</h2>
+<p class="body">Each game card lists every confirmed batter's probability of homering —
+built bottom-up from per-plate-appearance rates (validated on 109,000 held-out plate
+appearances), his lineup slot's measured trips to the plate, the platoon matchup against
+tonight's starter, the park's HR factor, and a weather multiplier fitted on this project's
+own games. The board shows one action number: the minimum sportsbook price worth taking.
+The model's fair odds are the break-even; any price at or above them is value if the
+calibration holds — and the calibration tables are public. No EV percentages are shown
+against a "consensus" this site doesn't ingest; a comparison that can't be made honestly
+isn't made.</p>
 <h2>Honest limitations</h2>
 <p class="body">Cross-validated accuracy is ~0.55 against a 0.52 home-team baseline — a real
 but thin signal, nowhere near guaranteed to survive closing-line vig. Some prediction inputs

@@ -72,6 +72,13 @@ ul.reasons .against { color:#8b949e; }
 .wchip.pos { background:#0f2e1c; color:#3fb950; border:1px solid #2ea043; }
 .wchip.neg { background:#3a1516; color:#f85149; border:1px solid #da3633; }
 .wchip.neu { background:#21262d; color:#8b949e; border:1px solid #30363d; }
+.hrboard { margin-top:12px; }
+.hrboard table { width:100%; border-collapse:collapse; font-size:12px; }
+.hrboard th { text-align:left; color:#8b949e; font-weight:600; padding:4px 8px;
+  border-bottom:1px solid #30363d; }
+.hrboard td { padding:4px 8px; border-bottom:1px solid #21262d; }
+.hrboard td.num { font-variant-numeric:tabular-nums; }
+.hrboard .teamtag { color:#8b949e; font-size:11px; }
 .footer { color:#8b949e; font-size:12px; margin-top:28px; line-height:1.6; }
 """
 
@@ -153,6 +160,27 @@ def render_totals_rec(card):
                 f"<span class='edge'>Edge: {t['edge']:+.1%}</span>{bullets}</div>")
     return (f"<div class='norec'>No clear value (model {t['model_total']:.1f} vs {t['line']:g}, "
             f"largest gap {t['edge']:+.1%})</div>")
+
+
+def hr_board_section(card):
+    home_rows = card.get("hr_board_home") or []
+    away_rows = card.get("hr_board_away") or []
+    if not home_rows and not away_rows:
+        return ""
+    tagged = ([dict(r, team=abbr(card["away"])) for r in away_rows]
+              + [dict(r, team=abbr(card["home"])) for r in home_rows])
+    tagged.sort(key=lambda r: -r["p_hr"])
+    body = "".join(
+        f"<tr><td>{r['name']} <span class='teamtag'>{r['team']} · #{r['slot']}</span></td>"
+        f"<td class='num'>{r['e_hrs']:.2f}</td>"
+        f"<td class='num'>{r['p_hr']:.1%}</td>"
+        f"<td class='num'>{r['p_2hr']:.1%}</td>"
+        f"<td class='num'><b>{r.get('take_odds', r['fair_odds']):+d} or better</b></td></tr>"
+        for r in tagged[:8])
+    return ("<div class='rechead'>HR Board (top 8 · take the price only at or above the "
+            "model's fair odds)</div>"
+            "<div class='hrboard'><table><tr><th>Batter</th><th>E[HR]</th>"
+            "<th>P(1+)</th><th>P(2+)</th><th>Take</th></tr>" + body + "</table></div>")
 
 
 def totals_section(card):
@@ -249,6 +277,7 @@ def render_card(card, anchor=""):
       <div class='rechead'>Moneyline Recommendation</div>
       {rec}
       {totals_section(card)}
+      {hr_board_section(card)}
       <div class='dq'>{dq}</div>
     </div>"""
 

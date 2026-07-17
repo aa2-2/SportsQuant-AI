@@ -27,9 +27,11 @@ from bet_policy import FLAT_STAKE, evaluate_bet, expected_value, kelly_stake
 from explain import full_breakdown, load_raw_model, strength_label
 from report import build_report
 from hr_model import hr_model_trusted, load_hr_model, predict_game_hrs
+from sim.live_board import board_total_hrs, hr_board_for_lineup, load_sim_rates
 from totals import load_totals_model, predict_total, prob_over, totals_model_trusted
 from live_features import (
     build_game_feature_row,
+    get_pitcher_id_by_name,
     build_totals_row,
     weather_runs_effect,
     get_upcoming_schedule,
@@ -178,6 +180,13 @@ if __name__ == "__main__":
         print("(Totals model FAILED its baseline check at training time "
               f"[CV MAE {totals_bundle['cv_mae']:.3f} vs baseline {totals_bundle['baseline_mae']:.3f}] "
               "— O/U recommendations disabled until a model beats the baseline.)")
+
+    sim_rates = load_sim_rates()
+    if sim_rates is None:
+        print("(No sim rates found — run sim/build_current_rates.py to enable the per-batter HR board.)")
+    else:
+        print(f"(Per-batter HR board active — rates through {sim_rates.get('asof', '?')}, "
+              "platoon/park/weather adjusted.)")
 
     hr_bundle = load_hr_model()
     hr_trusted = hr_bundle is not None and hr_model_trusted(hr_bundle)
@@ -380,7 +389,26 @@ if __name__ == "__main__":
         card["approved"] = approved
         card["rejections"] = rejections
 
-        if hr_trusted:
+        if sim_rates is not None:
+            park = float(row["hr_park_factor"].iloc[0])
+            wx = ((float(row["temp"].iloc[0]), float(row["signed_wind"].iloc[0]))
+                  if weather_source else None)
+            home_sp_id = get_pitcher_id_by_name(ctx["starts"], sched_game["home_pitcher_name"])
+            away_sp_id = get_pitcher_id_by_name(ctx["starts"], sched_game["away_pitcher_name"])
+            card["hr_board_home"] = hr_board_for_lineup(
+                sched_game["home_lineup"], away_sp_id, sim_rates, park_hr=park, weather=wx)
+            card["hr_board_away"] = hr_board_for_lineup(
+                sched_game["away_lineup"], home_sp_id, sim_rates, park_hr=park, weather=wx)
+            board_all = card["hr_board_home"] + card["hr_board_away"]
+            if board_all:
+                card["proj_hrs"] = board_total_hrs(card["hr_board_home"], card["hr_board_away"])
+                top = sorted(board_all, key=lambda r: -r["p_hr"])[:3]
+                print(f"  Projected HRs (board sum): {card['proj_hrs']:.1f}")
+                print("  HR board (top 3): " + "; ".join(
+                    f"{r['name']} {r['p_hr']:.0%} — take {r['take_odds']:+d} or better"
+                    for r in top))
+
+        if hr_trusted and "proj_hrs" not in card:
             card["proj_hrs"] = predict_game_hrs(hr_bundle, row)
             print(f"  Projected HRs (game total): {card['proj_hrs']:.1f}")
         elif hr_bundle is not None:
