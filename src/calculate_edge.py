@@ -51,16 +51,26 @@ def remove_vig(home_implied, away_implied):
 
 
 def get_best_odds_per_game(odds_df):
-    best_home_odds = odds_df.loc[odds_df.groupby(["home_team", "away_team"])["home_odds"].idxmax()]
+    """
+    Best available price per GAME. Grouping must include commence_time:
+    the odds feed contains today's AND tomorrow's games, and a series
+    (or doubleheader) repeats the same matchup — grouping by team names
+    alone collapses distinct games into one row with a mixed timestamp,
+    which then (correctly) fails the nearest-time match and reports
+    "no odds posted" for games whose odds exist.
+    """
+    keys = ["home_team", "away_team", "commence_time"]
+
+    best_home_odds = odds_df.loc[odds_df.groupby(keys)["home_odds"].idxmax()]
     best_home_odds = best_home_odds[
-        ["home_team", "away_team", "commence_time", "bookmaker", "home_odds"]
+        keys + ["bookmaker", "home_odds"]
     ].rename(columns={"bookmaker": "best_home_bookmaker"})
 
-    best_away_odds = odds_df.loc[odds_df.groupby(["home_team", "away_team"])["away_odds"].idxmax()]
-    best_away_odds = best_away_odds[["home_team", "away_team", "bookmaker", "away_odds"]].rename(
+    best_away_odds = odds_df.loc[odds_df.groupby(keys)["away_odds"].idxmax()]
+    best_away_odds = best_away_odds[keys + ["bookmaker", "away_odds"]].rename(
         columns={"bookmaker": "best_away_bookmaker", "away_odds": "best_away_odds"}
     )
-    return best_home_odds.merge(best_away_odds, on=["home_team", "away_team"])
+    return best_home_odds.merge(best_away_odds, on=keys)
 
 
 def get_display_lines(odds_df, home, away):
