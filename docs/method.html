@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1E3A2F">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Method — MLBQuant</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js');}</script>
+</head><body>
+<header><div class="wrap bar">
+<a class="mark" href="index.html">MLBQUANT</a>
+<nav><a href="season.html">Results</a><a href="today.html">Today</a><a href="method.html">Method</a></nav>
+</div></header>
+
+<div class="hero"><div class="wrap"><h1>How the system works</h1>
+<p class="sub">And, just as deliberately, what it refuses to do.</p></div></div>
+<section><div class="wrap">
+<h2>The pipeline</h2>
+<p class="body">Six seasons of MLB results, starting pitchers, Statcast batted-ball data, and
+game-time weather feed 25 leakage-safe features — every rolling statistic uses only
+information available <em>before</em> the game it describes. A calibrated logistic regression
+produces win probabilities; those are compared against vig-removed consensus odds from nine
+sportsbooks; disagreements above threshold become flags; flags that clear all eight gates
+become simulated 1-unit paper bets, logged with their odds, probability, expected value,
+and the model's top reasons. Final scores grade every bet automatically.</p>
+<h2>Why the probabilities can be trusted (and where they can't)</h2>
+<p class="body">Calibration analysis on held-out 2026 games shows predicted probabilities in
+the 30–70% band track observed win rates. Outside that band the samples are thin and the
+model measurably overconfident — so the policy simply refuses to bet there. The betting gates
+are derived from the project's own validation findings, not borrowed thresholds.</p>
+<h2>What it refuses to do</h2>
+<p class="body">A second model that predicts run totals failed to beat the naive
+always-predict-the-average baseline in cross-validation. The system reads that verdict from
+the model's own saved report card and disables O/U betting automatically — the model exists,
+and is not allowed to act, until it earns it. There is also no real-money automation anywhere:
+the ledger's job is to establish, in public, whether the edges are real. Sizing stays at a
+flat 1 unit; quarter-Kelly stakes are recorded in parallel for comparison but never used,
+because Kelly trusts the model's probabilities and that trust is exactly what's being tested.</p>
+<h2>Honest limitations</h2>
+<p class="body">Cross-validated accuracy is ~0.55 against a 0.52 home-team baseline — a real
+but thin signal, nowhere near guaranteed to survive closing-line vig. Some prediction inputs
+fall back to training-mean placeholders when lineups or weather aren't posted (a fallback
+scheme rebuilt after a placeholder bias was caught flagging every road team on one slate —
+graded honestly in the project log). The sample of settled bets is small; nothing here is a
+conclusion yet. That's what the ledger is for.</p>
+</div></section>
+
+<footer><div class="wrap">All stakes are simulated 1-unit paper bets — a public, timestamped
+model track record, not wagering advice. Built by a student; every pick is logged before
+first pitch and graded after. <a href="https://github.com/aa2-2/SportsQuant-AI">Source on GitHub</a>.
+</div></footer></body></html>

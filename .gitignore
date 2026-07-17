@@ -1,0 +1,5 @@
+data/
+__pycache__/
+*.pyc
+.env
+run_edge.bat
