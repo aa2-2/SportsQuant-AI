@@ -161,7 +161,8 @@ if __name__ == "__main__":
 
     def resolve_player_names(schedule):
         """One batched MLB Stats API lookup for every lineup ID today."""
-        ids = sorted({p.get("id") for g in schedule
+        rows = (g for _, g in schedule.iterrows()) if hasattr(schedule, "iterrows") else schedule
+        ids = sorted({p.get("id") for g in rows
                       for p in (g.get("home_lineup") or []) + (g.get("away_lineup") or [])
                       if p.get("id")})
         names = {}

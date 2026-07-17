@@ -79,6 +79,20 @@ ul.reasons .against { color:#8b949e; }
 .hrboard td { padding:4px 8px; border-bottom:1px solid #21262d; }
 .hrboard td.num { font-variant-numeric:tabular-nums; }
 .hrboard .teamtag { color:#8b949e; font-size:11px; }
+.bestbets { margin:0 0 18px; }
+.bestbets h2 { font-size:16px; margin:0 0 10px; color:#e6edf3; }
+.bb { background:#12261a; border:1px solid #2ea043; border-radius:12px; padding:14px 16px; margin-bottom:10px; }
+.bb.medium { background:#241d0e; border-color:#9e6a03; }
+.bb .pickline { font-size:17px; font-weight:800; }
+.bb .conf { font-size:11px; font-weight:700; letter-spacing:.08em; padding:2px 10px;
+  border-radius:999px; margin-left:8px; vertical-align:middle; }
+.bb .conf.high { background:#1a7f37; color:#fff; } .bb .conf.medium { background:#9e6a03; color:#fff; }
+.bb .plain { color:#b6c2cf; font-size:13px; margin-top:6px; }
+.nobets { background:#161b22; border:1px solid #30363d; border-radius:12px; padding:14px 16px;
+  margin-bottom:18px; color:#b6c2cf; font-size:14px; }
+.hrtop { background:#161b22; border:1px solid #30363d; border-radius:12px; padding:12px 16px; margin-bottom:18px; }
+.hrtop b { font-size:14px; } .hrtop .plain { color:#b6c2cf; font-size:13px; margin-top:4px; }
+.modelnote { color:#8b949e; font-size:12px; margin:18px 0; }
 .footer { color:#8b949e; font-size:12px; margin-top:28px; line-height:1.6; }
 """
 
@@ -190,6 +204,54 @@ def totals_section(card):
     return f"<div class='rechead'>Total Recommendation</div>{rec}"
 
 
+def plain_pick_sentence(card):
+    """One sentence a parent understands."""
+    side_abbr = abbr(card["side"])
+    model = card["side_model_prob"]
+    market = card["side_fair_prob"]
+    return (f"Our model gives {side_abbr} a {model:.0%} chance to win; "
+            f"the betting market is pricing them like a {market:.0%} team. "
+            f"That gap is the value.")
+
+
+def render_best_bets(cards):
+    approved = [c for c in cards if c["tier"] in ("HIGH", "MEDIUM") and c.get("approved")]
+    approved.sort(key=lambda c: ({"HIGH": 0, "MEDIUM": 1}[c["tier"]], -c["edge"]))
+    if not approved:
+        return ("<div class='nobets'><b>No bets today.</b> The model found no game where "
+                "it disagrees with the sportsbooks enough to risk anything — most days "
+                "look like this, and passing is a position.</div>")
+    items = ""
+    for c in approved:
+        tier_cls = c["tier"].lower()
+        items += (f"<div class='bb {tier_cls}'>"
+                  f"<div class='pickline'>Bet: {abbr(c['side'])} to win "
+                  f"({c['side_odds']:+.0f} at {c['side_book']})"
+                  f"<span class='conf {tier_cls}'>{c['tier']}</span></div>"
+                  f"<div class='plain'>{c['away']} at {c['home']}, {c['time_str']}. "
+                  f"{plain_pick_sentence(c)}</div></div>")
+    return (f"<div class='bestbets'><h2>Today's Bets ({len(approved)})</h2>{items}"
+            "<div class='plain' style='color:#8b949e;font-size:12px'>Simulated 1-unit "
+            "paper bets — a public test of the model, not wagering advice.</div></div>")
+
+
+def render_hr_top(cards):
+    rows = []
+    for c in cards:
+        for r in (c.get("hr_board_home") or []) + (c.get("hr_board_away") or []):
+            rows.append((r, c))
+    if not rows:
+        return ""
+    rows.sort(key=lambda rc: -rc[0]["p_hr"])
+    top = rows[:3]
+    parts = "".join(
+        f"<div class='plain'><b>{r['name']}</b> — {r['p_hr']:.0%} chance of a home run "
+        f"tonight. Worth a bet only if a sportsbook pays {r.get('take_odds', r['fair_odds']):+d} "
+        f"or longer.</div>"
+        for r, _ in top)
+    return f"<div class='hrtop'><b>Best home run plays</b>{parts}</div>"
+
+
 def render_strip(cards):
     chips = ""
     for i, c in enumerate(cards):
@@ -290,19 +352,11 @@ def build_report(target_date, cards, no_odds_games):
 
     hr_banner = ""
     if any(c.get("hr_untrusted") for c in cards):
-        hr_banner = ("<div class='card'><b>Note on HR numbers.</b>"
-                     "<ul class='reasons'><li>The game-level HR regression failed its "
-                     "baseline validation and stays disabled. Proj HRs and the per-batter "
-                     "board instead come from the bottom-up engine (per-PA rates, holdout-"
-                     "validated) and appear once lineups are posted.</li></ul></div>")
+        hr_banner = ""
 
     totals_banner = ""
     if any(c.get("totals_untrusted") for c in cards):
-        totals_banner = ("<div class='card'><b>Totals (O/U) recommendations are disabled.</b>"
-                         "<ul class='reasons'><li>The totals model failed its baseline "
-                         "validation — it can't currently out-predict the league-average "
-                         "total, so its edges would be noise. It re-enables automatically "
-                         "when a retrained model beats the baseline.</li></ul></div>")
+        totals_banner = ""
 
     missing_html = ""
     if no_odds_games:
@@ -325,11 +379,14 @@ moneyline model vs best available market price</div>
   <div class='stat'><div class='n'>{high + medium}</div><div class='l'>Recommended</div></div>
   <div class='stat'><div class='n'>{high} High · {medium} Medium</div><div class='l'>Confidence</div></div>
 </div>
+{render_best_bets(cards)}
+{render_hr_top(cards)}
 {render_strip(cards)}
-{totals_banner}
-{hr_banner}
 {''.join(render_card(c, anchor=f'g{i}') for i, c in enumerate(cards))}
 {missing_html}
+<div class='modelnote'>Model status: over/under and game-HR models are switched off — they
+haven't beaten their accuracy baselines yet, and this site doesn't show numbers its models
+haven't earned. Details on the <a href='method.html' style='color:#8b949e'>method page</a>.</div>
 <div class='footer'>
 Recommendations are simulated paper bets logged to bet_log.csv for model evaluation —
 not wagering advice. Flat 1-unit stakes. "Why" bullets are the logistic regression's
