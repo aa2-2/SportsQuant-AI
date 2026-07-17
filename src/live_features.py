@@ -468,6 +468,7 @@ def load_prediction_context(data_dir):
     ])
 
     return {
+        "weather_model": fit_weather_runs_model(features_df),
         "features_df": features_df,
         "starts": prepare_pitcher_starts(pitchers_df, games_df),
         "latest_stats": get_latest_team_stats(features_df),
@@ -555,22 +556,41 @@ def build_totals_row(win_row, home_team, away_team, latest_stats, features_df):
     return row[TOTALS_FEATURE_COLUMNS]
 
 
-def weather_runs_impact(totals_bundle, totals_row):
+def fit_weather_runs_model(features_df):
     """
-    Weather's effect on this game's RUN environment, in runs — the
-    honest frame: wind and heat blow on both teams, so weather moves
-    the total, not (meaningfully) the winner. Counterfactual: predict
-    the total with real weather, again with neutral weather, return
-    the difference. Positive -> favors hitters (more runs).
+    Estimates the weather -> run scoring relationship from this
+    project's own historical games: total_runs ~ temp + signed_wind
+    (ordinary least squares).
+
+    This is honest even though the full totals model failed its
+    baseline: predicting any single game's total is beyond the
+    features, but the MARGINAL effect of weather on run scoring is one
+    measurable relationship, estimated on ~6,000 games. Returns
+    (temp_coef, wind_coef, avg_total) — runs per degree F and runs per
+    mph of signed wind, plus the league-average total for percentages.
     """
-    real_total = float(totals_bundle["model"].predict(totals_row)[0])
+    import numpy as np
+    df = features_df.dropna(subset=["temp", "signed_wind", "home_score", "away_score"])
+    total = (df["home_score"] + df["away_score"]).values.astype(float)
+    X = np.column_stack([
+        np.ones(len(df)),
+        df["temp"].values.astype(float),
+        df["signed_wind"].values.astype(float),
+    ])
+    coefs, *_ = np.linalg.lstsq(X, total, rcond=None)
+    return float(coefs[1]), float(coefs[2]), float(total.mean())
 
-    neutral_row = totals_row.copy()
-    neutral_row["temp"] = PLACEHOLDER_TEMP
-    neutral_row["signed_wind"] = PLACEHOLDER_SIGNED_WIND
-    neutral_total = float(totals_bundle["model"].predict(neutral_row)[0])
 
-    return real_total - neutral_total
+def weather_runs_effect(temp, signed_wind, weather_model):
+    """
+    (delta_runs, pct_of_average_total) for these conditions vs neutral.
+    Positive -> favors hitters (more runs). Both teams equally — this
+    is a run-environment number, never a who-wins number.
+    """
+    temp_coef, wind_coef, avg_total = weather_model
+    delta = (temp_coef * (float(temp) - PLACEHOLDER_TEMP)
+             + wind_coef * (float(signed_wind) - PLACEHOLDER_SIGNED_WIND))
+    return delta, delta / avg_total
 
 
 def describe_weather(temp, signed_wind, wind_threshold=8.0, temp_threshold=10.0):

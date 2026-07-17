@@ -42,6 +42,17 @@ ul.reasons { margin:10px 0 0 0; padding-left:18px; font-size:13px; line-height:1
 .rechead { font-size:11px; color:#8b949e; text-transform:uppercase; letter-spacing:.08em; margin:12px 0 6px; }
 .norec { color:#8b949e; font-size:13px; padding:8px 0 0; }
 @media (max-width:640px){ .markets { grid-template-columns:1fr; } }
+.strip { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 18px; }
+.gchip { display:block; background:#161b22; border:1px solid #30363d; border-radius:10px;
+  padding:8px 12px; text-decoration:none; color:#e6edf3; font-size:12px; min-width:118px; }
+.gchip b { display:block; font-size:13px; }
+.gchip .t { color:#8b949e; }
+.gchip .e { font-weight:700; }
+.gchip .e.high { color:#3fb950; } .gchip .e.medium { color:#d29922; } .gchip .e.none { color:#8b949e; }
+.status { display:inline-block; font-size:10px; font-weight:700; padding:1px 8px;
+  border-radius:999px; margin-left:6px; vertical-align:middle; }
+.status.started { background:#3a1516; color:#f85149; }
+.status.upcoming { background:#21262d; color:#8b949e; }
 ul.reasons .against { color:#8b949e; }
 .dq { margin-top:10px; font-size:12px; color:#8b949e; }
 .wchip { display:inline-block; font-size:11px; font-weight:700; padding:2px 10px; border-radius:999px; margin-left:6px; }
@@ -51,16 +62,18 @@ ul.reasons .against { color:#8b949e; }
 .footer { color:#8b949e; font-size:12px; margin-top:28px; line-height:1.6; }
 </style></head><body><div class='wrap'>
 <h1>SportsQuant-AI — Game Cheat Sheet</h1>
-<div class='sub'>2026-07-17 · generated 2026-07-17 16:21 ·
+<div class='sub'>2026-07-17 · generated 2026-07-17 16:40 ·
 moneyline model vs best available market price</div>
 <div class='totals'>
   <div class='stat'><div class='n'>15</div><div class='l'>Games</div></div>
-  <div class='stat'><div class='n'>11</div><div class='l'>Recommended</div></div>
-  <div class='stat'><div class='n'>9 High · 2 Medium</div><div class='l'>Confidence</div></div>
+  <div class='stat'><div class='n'>10</div><div class='l'>Recommended</div></div>
+  <div class='stat'><div class='n'>6 High · 4 Medium</div><div class='l'>Confidence</div></div>
 </div>
+<div class='strip'><a class='gchip' href='#g0'><b>TB @ BOS</b><span class='t'>7:10 PM ET</span> <span class='e high'>+9.9%</span></a><a class='gchip' href='#g1'><b>LAD @ NYY</b><span class='t'>7:05 PM ET</span> <span class='e none'>—</span></a><a class='gchip' href='#g2'><b>PIT @ CLE</b><span class='t'>7:10 PM ET</span> <span class='e high'>+11.4%</span></a><a class='gchip' href='#g3'><b>TEX @ ATL</b><span class='t'>7:15 PM ET</span> <span class='e high'>+14.3%</span></a><a class='gchip' href='#g4'><b>CWS @ TOR</b><span class='t'>7:15 PM ET</span> <span class='e medium'>+5.5%</span></a><a class='gchip' href='#g5'><b>MIA @ MIL</b><span class='t'>7:40 PM ET</span> <span class='e medium'>+5.4%</span></a><a class='gchip' href='#g6'><b>MIN @ CHC</b><span class='t'>8:05 PM ET</span> <span class='e medium'>+4.3%</span></a><a class='gchip' href='#g7'><b>BAL @ HOU</b><span class='t'>8:10 PM ET</span> <span class='e medium'>+5.4%</span></a><a class='gchip' href='#g8'><b>SD @ KC</b><span class='t'>8:10 PM ET</span> <span class='e none'>—</span></a><a class='gchip' href='#g9'><b>CIN @ COL</b><span class='t'>8:40 PM ET</span> <span class='e none'>—</span></a><a class='gchip' href='#g10'><b>DET @ LAA</b><span class='t'>9:38 PM ET</span> <span class='e high'>+11.0%</span></a><a class='gchip' href='#g11'><b>WSH @ ATH</b><span class='t'>9:40 PM ET</span> <span class='e high'>+7.9%</span></a><a class='gchip' href='#g12'><b>STL @ AZ</b><span class='t'>9:40 PM ET</span> <span class='e high'>+9.7%</span></a><a class='gchip' href='#g13'><b>SF @ SEA</b><span class='t'>10:10 PM ET</span> <span class='e none'>—</span></a></div>
 <div class='card'><b>Totals (O/U) recommendations are disabled.</b><ul class='reasons'><li>The totals model failed its baseline validation — it can't currently out-predict the league-average total, so its edges would be noise. It re-enables automatically when a retrained model beats the baseline.</li></ul></div>
 
-    <div class='card'>
+
+    <div class='card' id='g0'>
       <div class='head'>
         <div>
           <div class='abbrs'>TB @ BOS</div>
@@ -81,16 +94,17 @@ moneyline model vs best available market price</div>
         <div class='mkt'><div class='t'>Total: 9</div>
           <div class='r'><span>Over</span><b>+101</b></div>
           <div class='r'><span>Under</span><b>-110</b></div>
+          <div class='r'><span>Proj HRs</span><b>2.4</b></div>
         </div>
       </div>
-      <div class='probbar'><div style='width:43.1%'></div></div>
-      <div class='problabel'><span>TB 56.9%</span><span>BOS 43.1%</span></div>
+      <div class='probbar'><div style='width:61.0%'></div></div>
+      <div class='problabel'><span>TB 39.0%</span><span>BOS 61.0%</span></div>
       <div class='rechead'>Moneyline Recommendation</div>
-      <div class='rec high'><span class='tier high'>HIGH</span><span class='pick'>TB ML (+100 @ FanDuel)</span><span class='edge'>Edge: +8.1%</span><ul class='reasons'><li>Model 56.9% vs Market 48.8%</li><li>Edge +8.1% on away side (TB)</li><li>home top power hitters (exit velo): 91 — strong push toward Tampa Bay Rays</li><li>home team exit velocity: 85.8861 — moderate push toward Tampa Bay Rays</li><li>away team Elo rating: 1544.9 — moderate push toward Tampa Bay Rays</li><li>temperature: 83 — slight push toward Tampa Bay Rays</li><li class='against'><span class='against'>home team Elo rating: 1563.34 — strong push toward Boston Red Sox</span></li><li class='against'><span class='against'>away top power hitters (exit velo): 91 — moderate push toward Boston Red Sox</span></li></ul></div>
+      <div class='rec high'><span class='tier high'>HIGH</span><span class='pick'>BOS ML (-110 @ LowVig.ag)</span><span class='edge'>Edge: +9.9%</span><ul class='reasons'><li>Model 61.0% vs Market 51.2%</li><li>Edge +9.9% on home side (BOS)</li><li>home team Elo rating: 1563.34 — strong push toward Boston Red Sox</li><li>home lineup's history vs away starter: 0.296296 — moderate push toward Boston Red Sox</li><li>away top power hitters (exit velo): 91 — moderate push toward Boston Red Sox</li><li>away top power hitters (HR rate): 0.06 — moderate push toward Boston Red Sox</li><li class='against'><span class='against'>home team exit velocity: 85.8861 — moderate push toward Tampa Bay Rays</span></li><li class='against'><span class='against'>away team Elo rating: 1544.9 — moderate push toward Tampa Bay Rays</span></li></ul></div>
       
-      <div class='dq'>Weather: forecast <span class='wchip neu'>neutral</span> &nbsp;·&nbsp; Lineups: not posted</div>
+      <div class='dq'>Weather: live<span class='wchip pos'>weather +3.2% run scoring (+0.28 runs) · favors hitters</span> &nbsp;·&nbsp; Lineups: not posted</div>
     </div>
-    <div class='card'>
+    <div class='card' id='g1'>
       <div class='head'>
         <div>
           <div class='abbrs'>LAD @ NYY</div>
@@ -111,6 +125,7 @@ moneyline model vs best available market price</div>
         <div class='mkt'><div class='t'>Total: 9</div>
           <div class='r'><span>Over</span><b>+110</b></div>
           <div class='r'><span>Under</span><b>-104</b></div>
+          
         </div>
       </div>
       <div class='probbar'><div style='width:51.6%'></div></div>
@@ -118,9 +133,9 @@ moneyline model vs best available market price</div>
       <div class='rechead'>Moneyline Recommendation</div>
       <div class='rec none'>Moneyline recommendation: <b>No clear value</b> (largest gap +2.7%)</div>
       
-      <div class='dq'>Weather: live <span class='wchip neu'>neutral</span> &nbsp;·&nbsp; Lineups: confirmed</div>
+      <div class='dq'>Weather: live<span class='wchip pos'>weather +4.4% run scoring (+0.39 runs) · favors hitters</span> &nbsp;·&nbsp; Lineups: confirmed</div>
     </div>
-    <div class='card'>
+    <div class='card' id='g2'>
       <div class='head'>
         <div>
           <div class='abbrs'>PIT @ CLE</div>
@@ -141,6 +156,7 @@ moneyline model vs best available market price</div>
         <div class='mkt'><div class='t'>Total: 7.5</div>
           <div class='r'><span>Over</span><b>-103</b></div>
           <div class='r'><span>Under</span><b>-102</b></div>
+          <div class='r'><span>Proj HRs</span><b>2.6</b></div>
         </div>
       </div>
       <div class='probbar'><div style='width:42.9%'></div></div>
@@ -148,9 +164,9 @@ moneyline model vs best available market price</div>
       <div class='rechead'>Moneyline Recommendation</div>
       <div class='rec high'><span class='tier high'>HIGH</span><span class='pick'>PIT ML (+114 @ BetUS)</span><span class='edge'>Edge: +11.4%</span><ul class='reasons'><li>Model 57.1% vs Market 45.7%</li><li>Edge +11.4% on away side (PIT)</li><li>away top power hitters (HR rate): 0.275 — strong push toward Pittsburgh Pirates</li><li>home team strikeout rate: 0.280513 — moderate push toward Pittsburgh Pirates</li><li>temperature: 88 — moderate push toward Pittsburgh Pirates</li><li>home top power hitters (exit velo): 86.9061 — moderate push toward Pittsburgh Pirates</li><li class='against'><span class='against'>home team Elo rating: 1523.23 — slight push toward Cleveland Guardians</span></li><li class='against'><span class='against'>home team HR rate: 0.0370972 — slight push toward Cleveland Guardians</span></li></ul></div>
       
-      <div class='dq'>Weather: live <span class='wchip pos'>favors hitters</span> &nbsp;·&nbsp; Lineups: confirmed</div>
+      <div class='dq'>Weather: live<span class='wchip pos'>weather +6.2% run scoring (+0.55 runs) · favors hitters</span> &nbsp;·&nbsp; Lineups: confirmed</div>
     </div>
-    <div class='card'>
+    <div class='card' id='g3'>
       <div class='head'>
         <div>
           <div class='abbrs'>TEX @ ATL</div>
@@ -171,6 +187,7 @@ moneyline model vs best available market price</div>
         <div class='mkt'><div class='t'>Total: 8</div>
           <div class='r'><span>Over</span><b>-105</b></div>
           <div class='r'><span>Under</span><b>-106</b></div>
+          <div class='r'><span>Proj HRs</span><b>2.6</b></div>
         </div>
       </div>
       <div class='probbar'><div style='width:51.3%'></div></div>
@@ -178,9 +195,9 @@ moneyline model vs best available market price</div>
       <div class='rechead'>Moneyline Recommendation</div>
       <div class='rec high'><span class='tier high'>HIGH</span><span class='pick'>TEX ML (+184 @ LowVig.ag)</span><span class='edge'>Edge: +14.3%</span><ul class='reasons'><li>Model 48.7% vs Market 34.4%</li><li>Edge +14.3% on away side (TEX)</li><li>home top power hitters (exit velo): 87.9939 — strong push toward Texas Rangers</li><li>temperature: 84 — moderate push toward Texas Rangers</li><li>away top power hitters (HR rate): 0.2 — slight push toward Texas Rangers</li><li>home lineup's history vs away starter: 0.222222 — slight push toward Texas Rangers</li><li class='against'><span class='against'>away team exit velocity: 86.1111 — moderate push toward Atlanta Braves</span></li><li class='against'><span class='against'>away lineup's history vs home starter: 0.203704 — moderate push toward Atlanta Braves</span></li></ul></div>
       
-      <div class='dq'>Weather: live <span class='wchip neu'>neutral</span> &nbsp;·&nbsp; Lineups: confirmed</div>
+      <div class='dq'>Weather: live<span class='wchip pos'>weather +5.0% run scoring (+0.45 runs) · favors hitters</span> &nbsp;·&nbsp; Lineups: confirmed</div>
     </div>
-    <div class='card'>
+    <div class='card' id='g4'>
       <div class='head'>
         <div>
           <div class='abbrs'>CWS @ TOR</div>
@@ -201,6 +218,7 @@ moneyline model vs best available market price</div>
         <div class='mkt'><div class='t'>Total: 8.5</div>
           <div class='r'><span>Over</span><b>-107</b></div>
           <div class='r'><span>Under</span><b>-105</b></div>
+          <div class='r'><span>Proj HRs</span><b>2.1</b></div>
         </div>
       </div>
       <div class='probbar'><div style='width:60.6%'></div></div>
@@ -208,9 +226,9 @@ moneyline model vs best available market price</div>
       <div class='rechead'>Moneyline Recommendation</div>
       <div class='rec medium'><span class='tier medium'>MEDIUM</span><span class='pick'>TOR ML (-129 @ BetOnline.ag)</span><span class='edge'>Edge: +5.5%</span><ul class='reasons'><li>Model 60.6% vs Market 55.1%</li><li>Edge +5.5% on home side (TOR)</li><li>home top power hitters (exit velo): 82.5284 — strong push toward Toronto Blue Jays</li><li>home team strikeout rate: 0.176692 — moderate push toward Toronto Blue Jays</li><li>home bullpen fatigue: 10 — slight push toward Toronto Blue Jays</li><li>away team exit velocity: 87.2998 — slight push toward Toronto Blue Jays</li><li class='against'><span class='against'>home team exit velocity: 85.92 — moderate push toward Chicago White Sox</span></li><li class='against'><span class='against'>away top power hitters (HR rate): 0.2 — slight push toward Chicago White Sox</span></li></ul></div>
       
-      <div class='dq'>Weather: live <span class='wchip neu'>neutral</span> &nbsp;·&nbsp; Lineups: confirmed</div>
+      <div class='dq'>Weather: live<span class='wchip neg'>weather -2.7% run scoring (-0.24 runs) · favors pitchers</span> &nbsp;·&nbsp; Lineups: confirmed</div>
     </div>
-    <div class='card'>
+    <div class='card' id='g5'>
       <div class='head'>
         <div>
           <div class='abbrs'>MIA @ MIL</div>
@@ -231,16 +249,17 @@ moneyline model vs best available market price</div>
         <div class='mkt'><div class='t'>Total: 8</div>
           <div class='r'><span>Over</span><b>-107</b></div>
           <div class='r'><span>Under</span><b>-102</b></div>
+          <div class='r'><span>Proj HRs</span><b>2.3</b></div>
         </div>
       </div>
-      <div class='probbar'><div style='width:44.3%'></div></div>
-      <div class='problabel'><span>MIA 55.7%</span><span>MIL 44.3%</span></div>
+      <div class='probbar'><div style='width:52.9%'></div></div>
+      <div class='problabel'><span>MIA 47.1%</span><span>MIL 52.9%</span></div>
       <div class='rechead'>Moneyline Recommendation</div>
-      <div class='rec high'><span class='tier high'>HIGH</span><span class='pick'>MIA ML (+135 @ BetRivers)</span><span class='edge'>Edge: +14.0%</span><ul class='reasons'><li>Model 55.7% vs Market 41.7%</li><li>Edge +14.0% on away side (MIA)</li><li>home top power hitters (exit velo): 91 — strong push toward Miami Marlins</li><li>away team Elo rating: 1568.31 — moderate push toward Miami Marlins</li><li>away team strikeout rate: 0.160182 — moderate push toward Miami Marlins</li><li>home team HR rate: 0.0219195 — slight push toward Miami Marlins</li><li class='against'><span class='against'>home team Elo rating: 1587.75 — strong push toward Milwaukee Brewers</span></li><li class='against'><span class='against'>away top power hitters (exit velo): 91 — moderate push toward Milwaukee Brewers</span></li></ul></div>
+      <div class='rec medium'><span class='tier medium'>MEDIUM</span><span class='pick'>MIA ML (+135 @ BetRivers)</span><span class='edge'>Edge: +5.4%</span><ul class='reasons'><li>Model 47.1% vs Market 41.7%</li><li>Edge +5.4% on away side (MIA)</li><li>home lineup's history vs away starter: 0.138889 — strong push toward Miami Marlins</li><li>away team Elo rating: 1568.31 — moderate push toward Miami Marlins</li><li>away team strikeout rate: 0.160182 — moderate push toward Miami Marlins</li><li>home team HR rate: 0.0219195 — slight push toward Miami Marlins</li><li class='against'><span class='against'>home team Elo rating: 1587.75 — strong push toward Milwaukee Brewers</span></li><li class='against'><span class='against'>away top power hitters (exit velo): 91 — moderate push toward Milwaukee Brewers</span></li></ul></div>
       
-      <div class='dq'>Weather: forecast <span class='wchip neu'>neutral</span> &nbsp;·&nbsp; Lineups: not posted</div>
+      <div class='dq'>Weather: live<span class='wchip neg'>weather -2.7% run scoring (-0.24 runs) · favors pitchers</span> &nbsp;·&nbsp; Lineups: not posted</div>
     </div>
-    <div class='card'>
+    <div class='card' id='g6'>
       <div class='head'>
         <div>
           <div class='abbrs'>MIN @ CHC</div>
@@ -261,16 +280,17 @@ moneyline model vs best available market price</div>
         <div class='mkt'><div class='t'>Total: 11</div>
           <div class='r'><span>Over</span><b>-102</b></div>
           <div class='r'><span>Under</span><b>-107</b></div>
+          <div class='r'><span>Proj HRs</span><b>2.7</b></div>
         </div>
       </div>
-      <div class='probbar'><div style='width:45.6%'></div></div>
-      <div class='problabel'><span>MIN 54.4%</span><span>CHC 45.6%</span></div>
+      <div class='probbar'><div style='width:61.6%'></div></div>
+      <div class='problabel'><span>MIN 38.4%</span><span>CHC 61.6%</span></div>
       <div class='rechead'>Moneyline Recommendation</div>
-      <div class='rec high'><span class='tier high'>HIGH</span><span class='pick'>MIN ML (+130 @ LowVig.ag)</span><span class='edge'>Edge: +11.7%</span><ul class='reasons'><li>Model 54.4% vs Market 42.7%</li><li>Edge +11.7% on away side (MIN)</li><li>home top power hitters (exit velo): 91 — strong push toward Minnesota Twins</li><li>temperature: 87 — moderate push toward Minnesota Twins</li><li>away team exit velocity: 89.2784 — slight push toward Minnesota Twins</li><li>away top power hitters (HR rate): 0.175 — slight push toward Minnesota Twins</li><li class='against'><span class='against'>home team HR rate: 0.0482322 — moderate push toward Chicago Cubs</span></li><li class='against'><span class='against'>home team Elo rating: 1547.71 — moderate push toward Chicago Cubs</span></li></ul></div>
+      <div class='rec medium'><span class='tier medium'>MEDIUM</span><span class='pick'>CHC ML (-140 @ MyBookie.ag)</span><span class='edge'>Edge: +4.3%</span><ul class='reasons'><li>Model 61.6% vs Market 57.3%</li><li>Edge +4.3% on home side (CHC)</li><li>home top power hitters (exit velo): 84.2161 — strong push toward Chicago Cubs</li><li>home team HR rate: 0.0482322 — moderate push toward Chicago Cubs</li><li>home team Elo rating: 1547.71 — moderate push toward Chicago Cubs</li><li>away lineup's history vs home starter: 0.207407 — moderate push toward Chicago Cubs</li><li class='against'><span class='against'>home lineup's history vs away starter: 0.194444 — moderate push toward Minnesota Twins</span></li><li class='against'><span class='against'>temperature: 87 — moderate push toward Minnesota Twins</span></li></ul></div>
       
-      <div class='dq'>Weather: live <span class='wchip pos'>favors hitters</span> &nbsp;·&nbsp; Lineups: not posted</div>
+      <div class='dq'>Weather: live<span class='wchip pos'>weather +7.0% run scoring (+0.62 runs) · favors hitters</span> &nbsp;·&nbsp; Lineups: confirmed</div>
     </div>
-    <div class='card'>
+    <div class='card' id='g7'>
       <div class='head'>
         <div>
           <div class='abbrs'>BAL @ HOU</div>
@@ -291,6 +311,7 @@ moneyline model vs best available market price</div>
         <div class='mkt'><div class='t'>Total: 8.5</div>
           <div class='r'><span>Over</span><b>+107</b></div>
           <div class='r'><span>Under</span><b>+103</b></div>
+          <div class='r'><span>Proj HRs</span><b>2.6</b></div>
         </div>
       </div>
       <div class='probbar'><div style='width:56.8%'></div></div>
@@ -298,9 +319,9 @@ moneyline model vs best available market price</div>
       <div class='rechead'>Moneyline Recommendation</div>
       <div class='rec medium'><span class='tier medium'>MEDIUM</span><span class='pick'>HOU ML (-111 @ BetOnline.ag)</span><span class='edge'>Edge: +5.4%</span><ul class='reasons'><li>Model 56.8% vs Market 51.4%</li><li>Edge +5.4% on home side (HOU)</li><li>away top power hitters (exit velo): 91 — moderate push toward Houston Astros</li><li>away top power hitters (HR rate): 0.06 — moderate push toward Houston Astros</li><li>home team HR rate: 0.0432134 — moderate push toward Houston Astros</li><li>away team HR rate: 0.0422359 — moderate push toward Houston Astros</li><li class='against'><span class='against'>away team exit velocity: 90.5038 — moderate push toward Baltimore Orioles</span></li><li class='against'><span class='against'>home team exit velocity: 86.4228 — moderate push toward Baltimore Orioles</span></li></ul></div>
       
-      <div class='dq'>Weather: live <span class='wchip neu'>neutral</span> &nbsp;·&nbsp; Lineups: not posted</div>
+      <div class='dq'>Weather: live<span class='wchip neg'>weather -2.7% run scoring (-0.24 runs) · favors pitchers</span> &nbsp;·&nbsp; Lineups: not posted</div>
     </div>
-    <div class='card'>
+    <div class='card' id='g8'>
       <div class='head'>
         <div>
           <div class='abbrs'>SD @ KC</div>
@@ -321,6 +342,7 @@ moneyline model vs best available market price</div>
         <div class='mkt'><div class='t'>Total: 10</div>
           <div class='r'><span>Over</span><b>-115</b></div>
           <div class='r'><span>Under</span><b>+103</b></div>
+          
         </div>
       </div>
       <div class='probbar'><div style='width:49.6%'></div></div>
@@ -328,9 +350,9 @@ moneyline model vs best available market price</div>
       <div class='rechead'>Moneyline Recommendation</div>
       <div class='rec none'>Moneyline recommendation: <b>No clear value</b> (largest gap +2.0%)</div>
       
-      <div class='dq'>Weather: live <span class='wchip pos'>favors hitters</span> &nbsp;·&nbsp; Lineups: not posted</div>
+      <div class='dq'>Weather: live<span class='wchip pos'>weather +7.0% run scoring (+0.62 runs) · favors hitters</span> &nbsp;·&nbsp; Lineups: not posted</div>
     </div>
-    <div class='card'>
+    <div class='card' id='g9'>
       <div class='head'>
         <div>
           <div class='abbrs'>CIN @ COL</div>
@@ -351,16 +373,17 @@ moneyline model vs best available market price</div>
         <div class='mkt'><div class='t'>Total: 12</div>
           <div class='r'><span>Over</span><b>-107</b></div>
           <div class='r'><span>Under</span><b>-102</b></div>
+          
         </div>
       </div>
-      <div class='probbar'><div style='width:39.6%'></div></div>
-      <div class='problabel'><span>CIN 60.4%</span><span>COL 39.6%</span></div>
+      <div class='probbar'><div style='width:52.4%'></div></div>
+      <div class='problabel'><span>CIN 47.6%</span><span>COL 52.4%</span></div>
       <div class='rechead'>Moneyline Recommendation</div>
-      <div class='rec high'><span class='tier high'>HIGH</span><span class='pick'>CIN ML (+101 @ LowVig.ag)</span><span class='edge'>Edge: +11.5%</span><ul class='reasons'><li>Model 60.4% vs Market 48.9%</li><li>Edge +11.5% on away side (CIN)</li><li>home top power hitters (exit velo): 91 — strong push toward Cincinnati Reds</li><li>home team exit velocity: 85.237 — strong push toward Cincinnati Reds</li><li>home team Elo rating: 1442.19 — moderate push toward Cincinnati Reds</li><li>temperature: 93.4 — moderate push toward Cincinnati Reds</li><li class='against'><span class='against'>away top power hitters (exit velo): 91 — moderate push toward Colorado Rockies</span></li><li class='against'><span class='against'>away top power hitters (HR rate): 0.06 — moderate push toward Colorado Rockies</span></li></ul></div>
+      <div class='rec none'>Moneyline recommendation: <b>No clear value</b> (largest gap +1.4%)</div>
       
-      <div class='dq'>Weather: forecast <span class='wchip pos'>favors hitters</span> &nbsp;·&nbsp; Lineups: not posted</div>
+      <div class='dq'>Weather: live<span class='wchip pos'>weather +6.8% run scoring (+0.61 runs) · favors hitters</span> &nbsp;·&nbsp; Lineups: not posted</div>
     </div>
-    <div class='card'>
+    <div class='card' id='g10'>
       <div class='head'>
         <div>
           <div class='abbrs'>DET @ LAA</div>
@@ -381,16 +404,17 @@ moneyline model vs best available market price</div>
         <div class='mkt'><div class='t'>Total: 8.5</div>
           <div class='r'><span>Over</span><b>+102</b></div>
           <div class='r'><span>Under</span><b>-112</b></div>
+          <div class='r'><span>Proj HRs</span><b>2.8</b></div>
         </div>
       </div>
       <div class='probbar'><div style='width:38.2%'></div></div>
       <div class='problabel'><span>DET 61.8%</span><span>LAA 38.2%</span></div>
       <div class='rechead'>Moneyline Recommendation</div>
-      <div class='rec high'><span class='tier high'>HIGH</span><span class='pick'>DET ML (-107 @ BetUS)</span><span class='edge'>Edge: +10.9%</span><ul class='reasons'><li>Model 61.8% vs Market 50.8%</li><li>Edge +10.9% on away side (DET)</li><li>home top power hitters (exit velo): 91 — strong push toward Detroit Tigers</li><li>home team Elo rating: 1422.48 — strong push toward Detroit Tigers</li><li>home team exit velocity: 86.4184 — moderate push toward Detroit Tigers</li><li>home team HR rate: 0.0184836 — slight push toward Detroit Tigers</li><li class='against'><span class='against'>away team HR rate: 0.0527922 — moderate push toward Los Angeles Angels</span></li><li class='against'><span class='against'>away top power hitters (exit velo): 91 — moderate push toward Los Angeles Angels</span></li></ul></div>
+      <div class='rec high'><span class='tier high'>HIGH</span><span class='pick'>DET ML (-107 @ BetUS)</span><span class='edge'>Edge: +11.0%</span><ul class='reasons'><li>Model 61.8% vs Market 50.8%</li><li>Edge +11.0% on away side (DET)</li><li>home top power hitters (exit velo): 91 — strong push toward Detroit Tigers</li><li>home team Elo rating: 1422.48 — strong push toward Detroit Tigers</li><li>home team exit velocity: 86.4184 — moderate push toward Detroit Tigers</li><li>home team HR rate: 0.0184836 — slight push toward Detroit Tigers</li><li class='against'><span class='against'>away team HR rate: 0.0527922 — moderate push toward Los Angeles Angels</span></li><li class='against'><span class='against'>away top power hitters (exit velo): 91 — moderate push toward Los Angeles Angels</span></li></ul></div>
       
-      <div class='dq'>Weather: forecast <span class='wchip pos'>favors hitters</span> &nbsp;·&nbsp; Lineups: not posted</div>
+      <div class='dq'>Weather: forecast<span class='wchip pos'>weather +2.8% run scoring (+0.25 runs) · favors hitters</span> &nbsp;·&nbsp; Lineups: not posted</div>
     </div>
-    <div class='card'>
+    <div class='card' id='g11'>
       <div class='head'>
         <div>
           <div class='abbrs'>WSH @ ATH</div>
@@ -411,6 +435,7 @@ moneyline model vs best available market price</div>
         <div class='mkt'><div class='t'>Total: 10</div>
           <div class='r'><span>Over</span><b>-108</b></div>
           <div class='r'><span>Under</span><b>-102</b></div>
+          <div class='r'><span>Proj HRs</span><b>3.4</b></div>
         </div>
       </div>
       <div class='probbar'><div style='width:37.1%'></div></div>
@@ -418,9 +443,9 @@ moneyline model vs best available market price</div>
       <div class='rechead'>Moneyline Recommendation</div>
       <div class='rec high'><span class='tier high'>HIGH</span><span class='pick'>WSH ML (-128 @ BetUS)</span><span class='edge'>Edge: +7.9%</span><ul class='reasons'><li>Model 62.9% vs Market 55.0%</li><li>Edge +7.9% on away side (WSH)</li><li>home top power hitters (exit velo): 91 — strong push toward Washington Nationals</li><li>home team Elo rating: 1400.37 — strong push toward Washington Nationals</li><li>home team strikeout rate: 0.279913 — moderate push toward Washington Nationals</li><li>temperature: 87.9 — moderate push toward Washington Nationals</li><li class='against'><span class='against'>away team HR rate: 0.0569483 — strong push toward Athletics</span></li><li class='against'><span class='against'>away top power hitters (exit velo): 91 — moderate push toward Athletics</span></li></ul></div>
       
-      <div class='dq'>Weather: forecast <span class='wchip pos'>favors hitters</span> &nbsp;·&nbsp; Lineups: not posted</div>
+      <div class='dq'>Weather: forecast<span class='wchip pos'>weather +8.2% run scoring (+0.73 runs) · favors hitters</span> &nbsp;·&nbsp; Lineups: not posted</div>
     </div>
-    <div class='card'>
+    <div class='card' id='g12'>
       <div class='head'>
         <div>
           <div class='abbrs'>STL @ AZ</div>
@@ -441,6 +466,7 @@ moneyline model vs best available market price</div>
         <div class='mkt'><div class='t'>Total: 9</div>
           <div class='r'><span>Over</span><b>+103</b></div>
           <div class='r'><span>Under</span><b>-105</b></div>
+          <div class='r'><span>Proj HRs</span><b>2.6</b></div>
         </div>
       </div>
       <div class='probbar'><div style='width:40.3%'></div></div>
@@ -448,9 +474,9 @@ moneyline model vs best available market price</div>
       <div class='rechead'>Moneyline Recommendation</div>
       <div class='rec high'><span class='tier high'>HIGH</span><span class='pick'>STL ML (-105 @ BetRivers)</span><span class='edge'>Edge: +9.7%</span><ul class='reasons'><li>Model 59.7% vs Market 50.0%</li><li>Edge +9.7% on away side (STL)</li><li>home top power hitters (exit velo): 91 — strong push toward St. Louis Cardinals</li><li>home team exit velocity: 87.1908 — slight push toward St. Louis Cardinals</li><li>away team exit velocity: 89.6649 — slight push toward St. Louis Cardinals</li><li>away team Elo rating: 1515.85 — slight push toward St. Louis Cardinals</li><li class='against'><span class='against'>away top power hitters (exit velo): 91 — moderate push toward Arizona Diamondbacks</span></li><li class='against'><span class='against'>away top power hitters (HR rate): 0.06 — moderate push toward Arizona Diamondbacks</span></li></ul></div>
       
-      <div class='dq'>Weather: forecast <span class='wchip neu'>neutral</span> &nbsp;·&nbsp; Lineups: not posted</div>
+      <div class='dq'>Weather: forecast<span class='wchip neu'>weather +0.0% run scoring (+0.00 runs) · neutral</span> &nbsp;·&nbsp; Lineups: not posted</div>
     </div>
-    <div class='card'>
+    <div class='card' id='g13'>
       <div class='head'>
         <div>
           <div class='abbrs'>SF @ SEA</div>
@@ -471,6 +497,7 @@ moneyline model vs best available market price</div>
         <div class='mkt'><div class='t'>Total: 7</div>
           <div class='r'><span>Over</span><b>+110</b></div>
           <div class='r'><span>Under</span><b>+105</b></div>
+          <div class='r'><span>Proj HRs</span><b>2.5</b></div>
         </div>
       </div>
       <div class='probbar'><div style='width:42.4%'></div></div>
@@ -478,7 +505,7 @@ moneyline model vs best available market price</div>
       <div class='rechead'>Moneyline Recommendation</div>
       <div class='rec none'><b>Flag suppressed — not bet.</b><ul class='reasons'><li>edge +20.6% exceeds 15% sanity cap — too good to be true usually means a data problem, not value</li></ul></div>
       
-      <div class='dq'>Weather: forecast <span class='wchip neu'>neutral</span> &nbsp;·&nbsp; Lineups: not posted</div>
+      <div class='dq'>Weather: forecast<span class='wchip neu'>weather +0.0% run scoring (+0.00 runs) · neutral</span> &nbsp;·&nbsp; Lineups: not posted</div>
     </div>
 <div class='card'><b>No odds posted yet</b><ul class='reasons'><li>Tampa Bay Rays @ Boston Red Sox</li></ul></div>
 <div class='footer'>

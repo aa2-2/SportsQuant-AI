@@ -26,12 +26,12 @@ from bet_log import log_flag
 from bet_policy import FLAT_STAKE, evaluate_bet, expected_value, kelly_stake
 from explain import full_breakdown, load_raw_model, strength_label
 from report import build_report
+from hr_model import hr_model_trusted, load_hr_model, predict_game_hrs
 from totals import load_totals_model, predict_total, prob_over, totals_model_trusted
 from live_features import (
     build_game_feature_row,
     build_totals_row,
-    describe_weather,
-    weather_runs_impact,
+    weather_runs_effect,
     get_upcoming_schedule,
     load_prediction_context,
 )
@@ -179,6 +179,15 @@ if __name__ == "__main__":
               f"[CV MAE {totals_bundle['cv_mae']:.3f} vs baseline {totals_bundle['baseline_mae']:.3f}] "
               "— O/U recommendations disabled until a model beats the baseline.)")
 
+    hr_bundle = load_hr_model()
+    hr_trusted = hr_bundle is not None and hr_model_trusted(hr_bundle)
+    if hr_bundle is None:
+        print("(No HR model found — run train_hr_model.py to enable HR projections.)")
+    elif not hr_trusted:
+        print("(HR model FAILED its baseline check "
+              f"[CV MAE {hr_bundle['cv_mae']:.4f} vs baseline {hr_bundle['baseline_mae']:.4f}] "
+              "— projections disabled until a model beats the baseline.)")
+
     flagged = []
     cards = []
     no_odds_games = []
@@ -222,18 +231,17 @@ if __name__ == "__main__":
 
         model_home_prob = model.predict_proba(scaler.transform(row))[0][1]
 
-        # Weather framed as run environment, not winner: runs impact
-        # from the totals model when trusted, descriptive label otherwise.
-        w_runs, w_label = None, None
+        # Weather framed as run environment, not winner: its measured
+        # effect on total run scoring (fit on our own historical games),
+        # as runs and as a % of the average total.
+        w_runs, w_pct, w_label = None, None, None
         if weather_source:
-            if totals_trusted:
-                t_row_weather = build_totals_row(row, home, away, ctx["latest_stats"], ctx["features_df"])
-                w_runs = weather_runs_impact(totals_bundle, t_row_weather)
-                w_label = ("favors hitters" if w_runs > 0.15
-                           else "favors pitchers" if w_runs < -0.15 else "neutral")
-            else:
-                w_label = describe_weather(float(row["temp"].iloc[0]),
-                                           float(row["signed_wind"].iloc[0]))
+            w_runs, w_pct = weather_runs_effect(
+                float(row["temp"].iloc[0]), float(row["signed_wind"].iloc[0]),
+                ctx["weather_model"],
+            )
+            w_label = ("favors hitters" if w_pct > 0.02
+                       else "favors pitchers" if w_pct < -0.02 else "neutral")
 
         home_implied = american_odds_to_implied_prob(game["home_odds"])
         away_implied = american_odds_to_implied_prob(game["best_away_odds"])
@@ -242,10 +250,9 @@ if __name__ == "__main__":
         home_edge = model_home_prob - home_fair
         away_edge = (1 - model_home_prob) - away_fair
 
-        if weather_source and w_runs is not None:
-            weather_status = f"{weather_source} — {w_runs:+.1f} runs on the total ({w_label})"
-        elif weather_source:
-            weather_status = f"{weather_source} — {w_label}"
+        if weather_source and w_pct is not None:
+            weather_status = (f"{weather_source} — {w_pct:+.1%} run scoring "
+                              f"({w_runs:+.2f} runs, {w_label})")
         else:
             weather_status = "unavailable — neutral"
 
@@ -275,9 +282,11 @@ if __name__ == "__main__":
             "side_model_prob": model_home_prob if side_is_home else 1 - model_home_prob,
             "side_fair_prob": home_fair if side_is_home else away_fair,
             "edge": edge, "tier": tier, "breakdown": breakdown,
+            "started": game_has_started(sched_game.get("game_time_utc")),
             "weather_real": weather_source is not None,
             "weather_source": weather_source,
             "weather_runs": w_runs,
+            "weather_pct": w_pct,
             "weather_label": w_label,
             "lineups": bool(sched_game["home_lineup"] and sched_game["away_lineup"]),
         })
@@ -370,6 +379,12 @@ if __name__ == "__main__":
         )
         card["approved"] = approved
         card["rejections"] = rejections
+
+        if hr_trusted:
+            card["proj_hrs"] = predict_game_hrs(hr_bundle, row)
+            print(f"  Projected HRs (game total): {card['proj_hrs']:.1f}")
+        elif hr_bundle is not None:
+            card["hr_untrusted"] = True
 
         side_ev = expected_value(card["side_model_prob"], card["side_odds"])
         print(f"  >>> {tier} VALUE FLAG: {side} — model {edge:+.1%} vs market "

@@ -55,6 +55,17 @@ ul.reasons { margin:10px 0 0 0; padding-left:18px; font-size:13px; line-height:1
 .rechead { font-size:11px; color:#8b949e; text-transform:uppercase; letter-spacing:.08em; margin:12px 0 6px; }
 .norec { color:#8b949e; font-size:13px; padding:8px 0 0; }
 @media (max-width:640px){ .markets { grid-template-columns:1fr; } }
+.strip { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 18px; }
+.gchip { display:block; background:#161b22; border:1px solid #30363d; border-radius:10px;
+  padding:8px 12px; text-decoration:none; color:#e6edf3; font-size:12px; min-width:118px; }
+.gchip b { display:block; font-size:13px; }
+.gchip .t { color:#8b949e; }
+.gchip .e { font-weight:700; }
+.gchip .e.high { color:#3fb950; } .gchip .e.medium { color:#d29922; } .gchip .e.none { color:#8b949e; }
+.status { display:inline-block; font-size:10px; font-weight:700; padding:1px 8px;
+  border-radius:999px; margin-left:6px; vertical-align:middle; }
+.status.started { background:#3a1516; color:#f85149; }
+.status.upcoming { background:#21262d; color:#8b949e; }
 ul.reasons .against { color:#8b949e; }
 .dq { margin-top:10px; font-size:12px; color:#8b949e; }
 .wchip { display:inline-block; font-size:11px; font-weight:700; padding:2px 10px; border-radius:999px; margin-left:6px; }
@@ -86,6 +97,13 @@ def _fmt_line(value):
     return f"{value:+g}" if value is not None and value == value else "—"
 
 
+def proj_hr_row(card):
+    hrs = card.get("proj_hrs")
+    if hrs is None:
+        return ""
+    return f"<div class='r'><span>Proj HRs</span><b>{hrs:.1f}</b></div>"
+
+
 def render_markets(card):
     home_a, away_a = abbr(card["home"]), abbr(card["away"])
     lines = card.get("lines") or {}
@@ -104,6 +122,7 @@ def render_markets(card):
         <div class='mkt'><div class='t'>Total: {total_str}</div>
           <div class='r'><span>Over</span><b>{_fmt_odds(lines.get('over_odds'))}</b></div>
           <div class='r'><span>Under</span><b>{_fmt_odds(lines.get('under_odds'))}</b></div>
+          {proj_hr_row(card)}
         </div>
       </div>"""
 
@@ -143,7 +162,20 @@ def totals_section(card):
     return f"<div class='rechead'>Total Recommendation</div>{rec}"
 
 
-def render_card(card):
+def render_strip(cards):
+    chips = ""
+    for i, c in enumerate(cards):
+        tier_cls = c["tier"].lower() if c.get("approved", True) and c["tier"] in ("HIGH", "MEDIUM") else "none"
+        edge_txt = f"{c['edge']:+.1%}" if c["tier"] in ("HIGH", "MEDIUM") and c.get("approved", True) else "—"
+        status = ("<span class='status started'>STARTED</span>"
+                  if c.get("started") else "")
+        chips += (f"<a class='gchip' href='#g{i}'><b>{abbr(c['away'])} @ {abbr(c['home'])}{status}</b>"
+                  f"<span class='t'>{c['time_str']}</span> "
+                  f"<span class='e {tier_cls}'>{edge_txt}</span></a>")
+    return f"<div class='strip'>{chips}</div>"
+
+
+def render_card(card, anchor=""):
     home, away = card["home"], card["away"]
     prob_pct = card["model_home_prob"] * 100
 
@@ -188,15 +220,14 @@ def render_card(card):
                f"(largest gap {card['edge']:+.1%})</div>")
 
     source = card.get("weather_source") or ("live" if card["weather_real"] else None)
+    w_pct = card.get("weather_pct")
     w_runs = card.get("weather_runs")
     w_label = card.get("weather_label")
-    if source and w_runs is not None:
+    if source and w_pct is not None:
         cls = "pos" if w_label == "favors hitters" else ("neg" if w_label == "favors pitchers" else "neu")
-        wchip = f"<span class='wchip {cls}'>weather {w_runs:+.1f} runs · {w_label}</span>"
+        wchip = (f"<span class='wchip {cls}'>weather {w_pct:+.1%} run scoring "
+                 f"({w_runs:+.2f} runs) · {w_label}</span>")
         dq = f"Weather: {source}{wchip}"
-    elif source and w_label:
-        cls = "pos" if w_label == "favors hitters" else ("neg" if w_label == "favors pitchers" else "neu")
-        dq = f"Weather: {source} <span class='wchip {cls}'>{w_label}</span>"
     elif source:
         dq = f"Weather: {source}"
     else:
@@ -204,7 +235,7 @@ def render_card(card):
     dq += " &nbsp;·&nbsp; Lineups: " + ("confirmed" if card["lineups"] else "not posted")
 
     return f"""
-    <div class='card'>
+    <div class='card' id='{anchor}'>
       <div class='head'>
         <div>
           <div class='abbrs'>{abbr(away)} @ {abbr(home)}</div>
@@ -227,6 +258,14 @@ def build_report(target_date, cards, no_odds_games):
 
     high = sum(1 for c in cards if c["tier"] == "HIGH" and c.get("approved", True))
     medium = sum(1 for c in cards if c["tier"] == "MEDIUM" and c.get("approved", True))
+
+    hr_banner = ""
+    if any(c.get("hr_untrusted") for c in cards):
+        hr_banner = ("<div class='card'><b>HR projections are disabled.</b>"
+                     "<ul class='reasons'><li>The HR model failed its baseline validation "
+                     "— it can't currently out-predict the league-average HR count, so its "
+                     "projections would be noise. It re-enables automatically when a "
+                     "retrained model beats the baseline.</li></ul></div>")
 
     totals_banner = ""
     if any(c.get("totals_untrusted") for c in cards):
@@ -254,8 +293,10 @@ moneyline model vs best available market price</div>
   <div class='stat'><div class='n'>{high + medium}</div><div class='l'>Recommended</div></div>
   <div class='stat'><div class='n'>{high} High · {medium} Medium</div><div class='l'>Confidence</div></div>
 </div>
+{render_strip(cards)}
 {totals_banner}
-{''.join(render_card(c) for c in cards)}
+{hr_banner}
+{''.join(render_card(c, anchor=f'g{i}') for i, c in enumerate(cards))}
 {missing_html}
 <div class='footer'>
 Recommendations are simulated paper bets logged to bet_log.csv for model evaluation —
