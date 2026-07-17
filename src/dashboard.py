@@ -1,5 +1,5 @@
 """
-SportsQuant-AI live dashboard — the "project it on another screen" app.
+MLBQuant live dashboard — the "project it on another screen" app.
 
 Run from the project root:
 
@@ -32,7 +32,7 @@ sys.path.insert(0, str(SRC_DIR))
 from config import DATA_DIR  # noqa: E402
 from bet_log import BET_LOG_PATH  # noqa: E402
 
-st.set_page_config(page_title="SportsQuant-AI", layout="wide")
+st.set_page_config(page_title="MLBQuant", layout="wide")
 
 
 def load_log():
@@ -48,7 +48,7 @@ def load_log():
 
 df = load_log()
 
-st.title("SportsQuant-AI")
+st.title("MLBQuant")
 st.caption("Paper-trading analytics — simulated 1-unit flat stakes, no real money. "
            "Every logged bet passed the six-gate policy in bet_policy.py.")
 

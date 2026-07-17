@@ -10,7 +10,7 @@ in data/reports/edge_report_<date>.html — double-click to open.
 from datetime import datetime
 
 from config import DATA_DIR
-from teams import abbr
+from teams import abbr, format_game_time
 
 REPORTS_DIR = DATA_DIR / "reports"
 
@@ -255,7 +255,7 @@ def render_card(card, anchor=""):
         cls = "pos" if w_label == "favors hitters" else ("neg" if w_label == "favors pitchers" else "neu")
         wchip = (f"<span class='wchip {cls}'>weather {w_pct:+.1%} run scoring "
                  f"({w_runs:+.2f} runs) · {w_label}</span>")
-        dq = f"Weather: {source}{wchip}"
+        dq = f"Weather: {source} {wchip}"
     elif source:
         dq = f"Weather: {source}"
     else:
@@ -290,11 +290,11 @@ def build_report(target_date, cards, no_odds_games):
 
     hr_banner = ""
     if any(c.get("hr_untrusted") for c in cards):
-        hr_banner = ("<div class='card'><b>HR projections are disabled.</b>"
-                     "<ul class='reasons'><li>The HR model failed its baseline validation "
-                     "— it can't currently out-predict the league-average HR count, so its "
-                     "projections would be noise. It re-enables automatically when a "
-                     "retrained model beats the baseline.</li></ul></div>")
+        hr_banner = ("<div class='card'><b>Note on HR numbers.</b>"
+                     "<ul class='reasons'><li>The game-level HR regression failed its "
+                     "baseline validation and stays disabled. Proj HRs and the per-batter "
+                     "board instead come from the bottom-up engine (per-PA rates, holdout-"
+                     "validated) and appear once lineups are posted.</li></ul></div>")
 
     totals_banner = ""
     if any(c.get("totals_untrusted") for c in cards):
@@ -306,15 +306,18 @@ def build_report(target_date, cards, no_odds_games):
 
     missing_html = ""
     if no_odds_games:
-        items = "".join(f"<li>{g}</li>" for g in no_odds_games)
+        items = "".join(
+            f"<li>{g['away_team']} @ {g['home_team']}"
+            f"{' — ' + format_game_time(g.get('game_time_utc')) if g.get('game_time_utc') else ''}</li>"
+            for g in no_odds_games)
         missing_html = (f"<div class='card'><b>No odds posted yet</b>"
                         f"<ul class='reasons'>{items}</ul></div>")
 
     html = f"""<!DOCTYPE html>
 <html><head><meta charset='utf-8'>
-<title>SportsQuant-AI — Edge Report {target_date}</title>
+<title>MLBQuant — Edge Report {target_date}</title>
 <style>{CSS}</style></head><body><div class='wrap'>
-<h1>SportsQuant-AI — Game Cheat Sheet</h1>
+<h1>MLBQUANT — Daily Card</h1>
 <div class='sub'>{target_date} · generated {datetime.now().strftime('%Y-%m-%d %H:%M')} ·
 moneyline model vs best available market price</div>
 <div class='totals'>

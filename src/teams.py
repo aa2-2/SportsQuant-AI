@@ -22,3 +22,26 @@ TEAM_NAME_TO_ABBR = {name: abbr for abbr, name in TEAM_ABBR_TO_NAME.items()}
 def abbr(team_name):
     """'San Francisco Giants' -> 'SF' (falls back to first 3 letters)."""
     return TEAM_NAME_TO_ABBR.get(team_name, team_name[:3].upper())
+
+
+def format_game_time(iso_utc):
+    """
+    '2026-07-16T22:10:00Z' -> '6:10 PM ET'.
+    Formatted manually: strftime's no-leading-zero codes are platform-
+    specific (%-I is Linux-only, %#I is Windows-only) — the old version
+    silently returned "" on Windows, which is why the site showed no
+    game times.
+    """
+    if not iso_utc:
+        return ""
+    try:
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+        dt = datetime.fromisoformat(str(iso_utc).replace("Z", "+00:00"))
+        local = dt.astimezone(ZoneInfo("America/New_York"))
+        hour12 = local.hour % 12 or 12
+        ampm = "AM" if local.hour < 12 else "PM"
+        return f"{hour12}:{local.minute:02d} {ampm} ET"
+    except Exception:
+        return ""
+

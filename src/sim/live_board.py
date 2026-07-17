@@ -110,6 +110,7 @@ def hr_board_for_lineup(lineup_players, opposing_starter_id, rates,
         e_hrs, p1, p2 = batter_game_hr_distribution(
             min(p_star, 0.5), min(p_pen, 0.5), slot, rates["slot_dist"], share)
         rows.append({
+            "pid": pid,
             "name": player.get("name") or f"#{pid}",
             "slot": slot,
             "e_hrs": e_hrs,

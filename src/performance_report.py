@@ -214,7 +214,7 @@ def build_performance_report():
 
     from datetime import datetime
     html = f"""<!DOCTYPE html>
-<html><head><meta charset='utf-8'><title>SportsQuant-AI — Season Results</title>
+<html><head><meta charset='utf-8'><title>MLBQuant — Season Results</title>
 <style>{CSS}</style></head><body><div class='wrap'>
 <div class='tophead'><h1>Season Results</h1><span class='pill'>PAPER · 2026</span></div>
 <div class='stats'>

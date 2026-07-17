@@ -123,28 +123,6 @@ def game_has_started(iso_utc):
         return False
 
 
-def format_game_time(iso_utc):
-    """
-    '2026-07-16T22:10:00Z' -> '6:10 PM ET'.
-    Formatted manually: strftime's no-leading-zero codes are platform-
-    specific (%-I is Linux-only, %#I is Windows-only) — the old version
-    silently returned "" on Windows, which is why the site showed no
-    game times.
-    """
-    if not iso_utc:
-        return ""
-    try:
-        from datetime import datetime
-        from zoneinfo import ZoneInfo
-        dt = datetime.fromisoformat(str(iso_utc).replace("Z", "+00:00"))
-        local = dt.astimezone(ZoneInfo("America/New_York"))
-        hour12 = local.hour % 12 or 12
-        ampm = "AM" if local.hour < 12 else "PM"
-        return f"{hour12}:{local.minute:02d} {ampm} ET"
-    except Exception:
-        return ""
-
-
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Compare model win probabilities against sportsbook odds."
@@ -180,6 +158,27 @@ if __name__ == "__main__":
         print("(Totals model FAILED its baseline check at training time "
               f"[CV MAE {totals_bundle['cv_mae']:.3f} vs baseline {totals_bundle['baseline_mae']:.3f}] "
               "— O/U recommendations disabled until a model beats the baseline.)")
+
+    def resolve_player_names(schedule):
+        """One batched MLB Stats API lookup for every lineup ID today."""
+        ids = sorted({p.get("id") for g in schedule
+                      for p in (g.get("home_lineup") or []) + (g.get("away_lineup") or [])
+                      if p.get("id")})
+        names = {}
+        for i in range(0, len(ids), 100):
+            chunk = ids[i:i + 100]
+            try:
+                data = get_json("https://statsapi.mlb.com/api/v1/people",
+                                params={"personIds": ",".join(map(str, chunk))})
+                for person in data.get("people", []):
+                    names[person["id"]] = person.get("fullName")
+            except Exception:
+                pass  # fall back to #id display
+        return names
+
+    player_names = resolve_player_names(schedule)
+    if player_names:
+        print(f"Resolved {len(player_names)} lineup player names")
 
     sim_rates = load_sim_rates()
     if sim_rates is None:
@@ -227,7 +226,8 @@ if __name__ == "__main__":
 
         if len(odds_match) == 0:
             print("  Odds status: NOT YET POSTED by any tracked sportsbook - rerun closer to game time")
-            no_odds_games.append(f"{away} @ {home}")
+            no_odds_games.append({"away_team": away, "home_team": home,
+                                  "game_time_utc": sched_game.get("game_time_utc")})
             continue
 
         game = odds_match.iloc[0]
@@ -399,6 +399,9 @@ if __name__ == "__main__":
                 sched_game["home_lineup"], away_sp_id, sim_rates, park_hr=park, weather=wx)
             card["hr_board_away"] = hr_board_for_lineup(
                 sched_game["away_lineup"], home_sp_id, sim_rates, park_hr=park, weather=wx)
+            for board in (card["hr_board_home"], card["hr_board_away"]):
+                for r in board:
+                    r["name"] = player_names.get(r.get("pid"), r["name"])
             board_all = card["hr_board_home"] + card["hr_board_away"]
             if board_all:
                 card["proj_hrs"] = board_total_hrs(card["hr_board_home"], card["hr_board_away"])
