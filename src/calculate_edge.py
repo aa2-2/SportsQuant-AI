@@ -30,7 +30,8 @@ from totals import load_totals_model, predict_total, prob_over, totals_model_tru
 from live_features import (
     build_game_feature_row,
     build_totals_row,
-    weather_impact,
+    describe_weather,
+    weather_runs_impact,
     get_upcoming_schedule,
     load_prediction_context,
 )
@@ -214,14 +215,25 @@ if __name__ == "__main__":
         game = odds_match.iloc[0]
 
         try:
-            row, live_weather = build_game_feature_row(sched_game, ctx)
+            row, weather_source = build_game_feature_row(sched_game, ctx)
         except KeyError:
             print("  Skipped: team not found in historical data (name mismatch?)")
             continue
 
         model_home_prob = model.predict_proba(scaler.transform(row))[0][1]
-        w_impact = weather_impact(model, scaler, row) if live_weather else None
-        card_weather = w_impact
+
+        # Weather framed as run environment, not winner: runs impact
+        # from the totals model when trusted, descriptive label otherwise.
+        w_runs, w_label = None, None
+        if weather_source:
+            if totals_trusted:
+                t_row_weather = build_totals_row(row, home, away, ctx["latest_stats"], ctx["features_df"])
+                w_runs = weather_runs_impact(totals_bundle, t_row_weather)
+                w_label = ("favors hitters" if w_runs > 0.15
+                           else "favors pitchers" if w_runs < -0.15 else "neutral")
+            else:
+                w_label = describe_weather(float(row["temp"].iloc[0]),
+                                           float(row["signed_wind"].iloc[0]))
 
         home_implied = american_odds_to_implied_prob(game["home_odds"])
         away_implied = american_odds_to_implied_prob(game["best_away_odds"])
@@ -230,11 +242,12 @@ if __name__ == "__main__":
         home_edge = model_home_prob - home_fair
         away_edge = (1 - model_home_prob) - away_fair
 
-        if live_weather:
-            weather_status = (f"real (live feed) — impact {w_impact:+.1%} on home win probability"
-                              if w_impact is not None else "real (live feed)")
+        if weather_source and w_runs is not None:
+            weather_status = f"{weather_source} — {w_runs:+.1f} runs on the total ({w_label})"
+        elif weather_source:
+            weather_status = f"{weather_source} — {w_label}"
         else:
-            weather_status = "placeholder (not posted yet) — impact neutral"
+            weather_status = "unavailable — neutral"
 
         print(f"  Best odds: {game['best_home_bookmaker']} {game['home_odds']:+.0f} (home) "
               f"/ {game['best_away_odds']:+.0f} (away)")
@@ -262,8 +275,10 @@ if __name__ == "__main__":
             "side_model_prob": model_home_prob if side_is_home else 1 - model_home_prob,
             "side_fair_prob": home_fair if side_is_home else away_fair,
             "edge": edge, "tier": tier, "breakdown": breakdown,
-            "weather_real": live_weather is not None,
-            "weather_impact": card_weather,
+            "weather_real": weather_source is not None,
+            "weather_source": weather_source,
+            "weather_runs": w_runs,
+            "weather_label": w_label,
             "lineups": bool(sched_game["home_lineup"] and sched_game["away_lineup"]),
         })
 
@@ -331,7 +346,7 @@ if __name__ == "__main__":
                         "ev_units": round(expected_value(t_prob, t_odds), 4),
                         "odds": t_odds,
                         "bookmaker": "consensus best",
-                        "weather_real": live_weather is not None,
+                        "weather_real": weather_source is not None,
                         "confidence": t_tier,
                         "reasons": f"model total {model_total:.1f} vs line {line:g}",
                         "stake_units": FLAT_STAKE,
@@ -393,7 +408,7 @@ if __name__ == "__main__":
             "ev_units": round(side_ev, 4),
             "odds": card["side_odds"],
             "bookmaker": card["side_book"],
-            "weather_real": live_weather is not None,
+            "weather_real": weather_source is not None,
             "confidence": tier,
             "reasons": reasons_text,
             "stake_units": FLAT_STAKE,

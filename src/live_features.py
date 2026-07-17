@@ -21,8 +21,9 @@ import pandas as pd
 
 from config import FEATURE_COLUMNS, TOTALS_FEATURE_COLUMNS
 from features.pitcher_era import convert_innings_pitched
-from features.weather import calculate_signed_wind, parse_wind_effect, parse_wind_speed
-from mlb_api import fetch_live_feed, fetch_schedule
+from ballparks import BALLPARKS, wind_direction_to_effect
+from features.weather import WIND_EFFECT_SIGN, calculate_signed_wind, parse_wind_effect, parse_wind_speed
+from mlb_api import fetch_live_feed, fetch_schedule, get_json
 
 LEAGUE_AVG_ERA = 4.00
 
@@ -135,6 +136,66 @@ def get_live_weather(game_pk):
         parse_wind_speed(wind_text), parse_wind_effect(wind_text)
     )
     return float(temp), signed_wind
+
+
+def get_forecast_weather(home_team, game_time_utc):
+    """
+    Forecast temp + signed wind for the scheduled game hour, from the
+    free Open-Meteo API and the ballpark table. This is what lets the
+    weather chip work all day instead of only near first pitch.
+    Returns (temp_f, signed_wind) or None (unknown park, roofed park,
+    missing time, or API failure).
+    """
+    park = BALLPARKS.get(home_team)
+    if park is None or not game_time_utc:
+        return None
+    if park["roof"]:
+        return (PLACEHOLDER_TEMP, 0.0)  # roofed: neutral wind, neutral temp
+
+    try:
+        from datetime import datetime
+        game_dt = datetime.fromisoformat(str(game_time_utc).replace("Z", "+00:00"))
+        day = game_dt.date().isoformat()
+
+        data = get_json(
+            "https://api.open-meteo.com/v1/forecast",
+            params={
+                "latitude": park["lat"], "longitude": park["lon"],
+                "hourly": "temperature_2m,wind_speed_10m,wind_direction_10m",
+                "temperature_unit": "fahrenheit", "wind_speed_unit": "mph",
+                "timezone": "UTC", "start_date": day, "end_date": day,
+            },
+        )
+        hours = data["hourly"]["time"]
+        target = game_dt.strftime("%Y-%m-%dT%H:00")
+        idx = hours.index(target) if target in hours else min(
+            range(len(hours)), key=lambda i: abs(
+                datetime.fromisoformat(hours[i]).hour - game_dt.hour)
+        )
+        temp = float(data["hourly"]["temperature_2m"][idx])
+        speed = float(data["hourly"]["wind_speed_10m"][idx])
+        direction = float(data["hourly"]["wind_direction_10m"][idx])
+        effect = wind_direction_to_effect(direction, park["cf_bearing"])
+        return (temp, speed * WIND_EFFECT_SIGN[effect])
+    except Exception:
+        return None
+
+
+def resolve_weather(game):
+    """
+    Best available weather for a game, in priority order:
+      1. real conditions from the live feed (posts near first pitch)
+      2. forecast for the ballpark at scheduled game time
+      3. None (callers fall back to calibrated neutral placeholders)
+    Returns (values, source) where source is "live" / "forecast" / None.
+    """
+    live = get_live_weather(game["game_pk"])
+    if live is not None:
+        return live, "live"
+    forecast = get_forecast_weather(game["home_team"], game.get("game_time_utc"))
+    if forecast is not None:
+        return forecast, "forecast"
+    return None, None
 
 
 def prepare_pitcher_starts(pitchers_df, games_df):
@@ -487,20 +548,34 @@ def build_totals_row(win_row, home_team, away_team, latest_stats, features_df):
     return row[TOTALS_FEATURE_COLUMNS]
 
 
-def weather_impact(model, scaler, feature_row):
+def weather_runs_impact(totals_bundle, totals_row):
     """
-    How much the ACTUAL weather is moving this game's home win
-    probability, computed as a counterfactual: predict with the real
-    weather, predict again with weather set to neutral (the calibrated
-    training means), and return the difference in probability points.
-    Positive -> current conditions favor the HOME team.
+    Weather's effect on this game's RUN environment, in runs — the
+    honest frame: wind and heat blow on both teams, so weather moves
+    the total, not (meaningfully) the winner. Counterfactual: predict
+    the total with real weather, again with neutral weather, return
+    the difference. Positive -> favors hitters (more runs).
     """
-    real_prob = model.predict_proba(scaler.transform(feature_row))[0][1]
+    real_total = float(totals_bundle["model"].predict(totals_row)[0])
 
-    neutral_row = feature_row.copy()
+    neutral_row = totals_row.copy()
     neutral_row["temp"] = PLACEHOLDER_TEMP
     neutral_row["signed_wind"] = PLACEHOLDER_SIGNED_WIND
-    neutral_prob = model.predict_proba(scaler.transform(neutral_row))[0][1]
+    neutral_total = float(totals_bundle["model"].predict(neutral_row)[0])
 
-    return float(real_prob - neutral_prob)
+    return real_total - neutral_total
 
+
+def describe_weather(temp, signed_wind, wind_threshold=8.0, temp_threshold=10.0):
+    """
+    Model-free description of conditions relative to neutral, used when
+    the totals model hasn't earned its slot (no fake numbers then).
+    Returns "favors hitters" / "favors pitchers" / "neutral".
+    """
+    hitters = (signed_wind >= wind_threshold) or (temp >= PLACEHOLDER_TEMP + temp_threshold)
+    pitchers = (signed_wind <= -wind_threshold) or (temp <= PLACEHOLDER_TEMP - temp_threshold)
+    if hitters and not pitchers:
+        return "favors hitters"
+    if pitchers and not hitters:
+        return "favors pitchers"
+    return "neutral"

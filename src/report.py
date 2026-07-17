@@ -187,16 +187,20 @@ def render_card(card):
         rec = (f"<div class='rec none'>Moneyline recommendation: <b>No clear value</b> "
                f"(largest gap {card['edge']:+.1%})</div>")
 
-    w = card.get("weather_impact")
-    if card["weather_real"] and w is not None:
-        cls = "pos" if w >= 0.005 else ("neg" if w <= -0.005 else "neu")
-        arrow = "helps home" if w > 0 else ("helps away" if w < 0 else "neutral")
-        wchip = f"<span class='wchip {cls}'>weather {w:+.1%} · {arrow}</span>"
-        dq = f"Weather: real (live feed){wchip}"
-    elif card["weather_real"]:
-        dq = "Weather: real (live feed)"
+    source = card.get("weather_source") or ("live" if card["weather_real"] else None)
+    w_runs = card.get("weather_runs")
+    w_label = card.get("weather_label")
+    if source and w_runs is not None:
+        cls = "pos" if w_label == "favors hitters" else ("neg" if w_label == "favors pitchers" else "neu")
+        wchip = f"<span class='wchip {cls}'>weather {w_runs:+.1f} runs · {w_label}</span>"
+        dq = f"Weather: {source}{wchip}"
+    elif source and w_label:
+        cls = "pos" if w_label == "favors hitters" else ("neg" if w_label == "favors pitchers" else "neu")
+        dq = f"Weather: {source} <span class='wchip {cls}'>{w_label}</span>"
+    elif source:
+        dq = f"Weather: {source}"
     else:
-        dq = "Weather: placeholder (not posted yet) <span class='wchip neu'>impact neutral</span>"
+        dq = "Weather: unavailable <span class='wchip neu'>neutral</span>"
     dq += " &nbsp;·&nbsp; Lineups: " + ("confirmed" if card["lineups"] else "not posted")
 
     return f"""

@@ -54,7 +54,7 @@ if __name__ == "__main__":
         home, away = game["home_team"], game["away_team"]
 
         try:
-            row, live_weather = build_game_feature_row(game, ctx)
+            row, weather_source = build_game_feature_row(game, ctx)
         except KeyError:
             print(f"\n{away} @ {home}")
             print("  Skipped: team not found in historical data (name mismatch?)")
@@ -72,8 +72,8 @@ if __name__ == "__main__":
         missing_inputs = []
         if not (game["home_lineup"] and game["away_lineup"]):
             missing_inputs.append("confirmed lineups (batter power + matchup features on neutral defaults)")
-        if live_weather is None:
-            missing_inputs.append("real weather (using 78F / calm)")
+        if weather_source is None:
+            missing_inputs.append("weather (live + forecast both unavailable; using neutral)")
         if game["home_pitcher_name"] is None or game["away_pitcher_name"] is None:
             missing_inputs.append("probable pitcher(s) (ERA features on league average)")
         missing_inputs.append("current pitcher whiff rates (always placeholder for upcoming games)")
