@@ -109,6 +109,18 @@ def test_placeholders_are_neutral_after_calibration():
     assert abs(lf.PLACEHOLDER_TEMP - 74) < 2.0
 
 
+def test_calibration_is_wired_into_live_context():
+    """
+    July 17's bug: calibrate_placeholders existed, passed its test, and
+    was CALLED BY NOTHING — so production ran on hardcoded 91.0-style
+    defaults (3.5 sigma off the real mean) whenever data was missing.
+    A fix without a call site is not a fix. This pins the wiring.
+    """
+    source = inspect.getsource(lf.load_prediction_context)
+    assert "calibrate_placeholders(" in source, \
+        "load_prediction_context no longer calibrates placeholders — rewire it"
+
+
 # ---------------- Tier 2: real-data equality ----------------
 
 FEATURES_CSV = DATA_DIR / "games_with_features_all_seasons.csv"

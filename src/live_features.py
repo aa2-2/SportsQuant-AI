@@ -453,6 +453,10 @@ def load_prediction_context(data_dir):
 
     print("Loading historical data...")
     features_df = pd.read_csv(data_dir / "games_with_features_all_seasons.csv")
+    cal = calibrate_placeholders(features_df)
+    print(f"Placeholders calibrated to training means: "
+          f"top-power velo {cal['top_power_exit_velo']:.2f}, "
+          f"matchup avg {cal['matchup_avg']:.3f}, temp {cal['temp']:.1f}")
     games_df = pd.read_csv(data_dir / "games_all_seasons.csv")
     pitchers_df = pd.read_csv(data_dir / "starting_pitchers_all_seasons.csv")
 

@@ -174,8 +174,8 @@ if __name__ == "__main__":
                                 params={"personIds": ",".join(map(str, chunk))})
                 for person in data.get("people", []):
                     names[person["id"]] = person.get("fullName")
-            except Exception:
-                pass  # fall back to #id display
+            except Exception as exc:
+                print(f"  (name lookup failed for {len(chunk)} ids: {exc})")
         return names
 
     player_names = resolve_player_names(scheduled)
