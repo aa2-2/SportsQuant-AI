@@ -15,6 +15,8 @@ amplifies noise.
 """
 import pandas as pd
 
+from datetime import datetime, timezone
+
 from config import DATA_DIR
 
 BET_LOG_PATH = DATA_DIR / "bet_log.csv"
@@ -71,6 +73,8 @@ def log_flag(entry):
     log_df = load_bet_log()
 
     entry.setdefault("bet_type", "moneyline")
+    entry.setdefault("logged_at",
+                     datetime.now(timezone.utc).isoformat(timespec="seconds"))
     entry.setdefault("line", "")
 
     if len(log_df) > 0:

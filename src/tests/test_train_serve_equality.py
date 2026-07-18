@@ -121,6 +121,24 @@ def test_calibration_is_wired_into_live_context():
         "load_prediction_context no longer calibrates placeholders — rewire it"
 
 
+def test_bet_policy_rejects_without_lineups_and_fails_closed():
+    """
+    July 17: eleven bets logged from a lineups-absent afternoon run —
+    placeholder-driven edges cleared every gate because no gate asked
+    about lineups. Now one does, and OMITTING the argument = rejection.
+    """
+    from bet_policy import evaluate_bet
+    perfect = dict(edge=0.05, side_model_prob=0.55, side_odds=120,
+                   home_pitcher_known=True, away_pitcher_known=True,
+                   game_started=False)
+    ok, reasons = evaluate_bet(**perfect, lineups_posted=True)
+    assert ok and not reasons
+    ok, reasons = evaluate_bet(**perfect, lineups_posted=False)
+    assert not ok and any("lineups not posted" in r for r in reasons)
+    ok, reasons = evaluate_bet(**perfect)  # fail-closed: forgetting = no bet
+    assert not ok
+
+
 # ---------------- Tier 2: real-data equality ----------------
 
 FEATURES_CSV = DATA_DIR / "games_with_features_all_seasons.csv"

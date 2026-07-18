@@ -69,7 +69,7 @@ def expected_value(prob, american_odds):
 
 def evaluate_bet(edge, side_model_prob, side_odds,
                  home_pitcher_known, away_pitcher_known,
-                 game_started=False):
+                 game_started=False, lineups_posted=False):
     """
     Applies every gate. Returns (approved, rejection_reasons).
     An empty reasons list means the bet is approved for logging.
@@ -99,6 +99,13 @@ def evaluate_bet(edge, side_model_prob, side_odds,
         reasons.append(
             f"expected value {ev:+.3f}u per unit at the actual price ({side_odds:+.0f}) "
             f"is below the {MIN_EV:+.2f}u minimum — the edge doesn't survive the vig"
+        )
+    if not lineups_posted:
+        reasons.append(
+            "lineups not posted — lineup-dependent features are running on "
+            "calibrated placeholders, so this is not the model's full opinion "
+            "(the July 17 slate-wide fake-edge event was exactly this). "
+            "Defaults to REJECT unless the caller proves lineups exist."
         )
     if not (home_pitcher_known and away_pitcher_known):
         reasons.append(

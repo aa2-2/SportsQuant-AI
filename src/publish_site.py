@@ -3,7 +3,7 @@ Publishes the project as a branded static website via GitHub Pages.
 
 Generates docs/ :
   index.html   — homepage: live record baked from bet_log.csv, recent
-                 graded bets as ledger rows, the eight gates, links
+                 graded bets as ledger rows, the nine gates, links
   method.html  — how the system works, honestly (pipeline, gates,
                  calibration, limitations)
   season.html  — copy of the season-results dashboard
@@ -102,6 +102,7 @@ GATES = [
     ("Odds between −250 and +250", "Beyond that, \u201cedges\u201d are usually stale lines or payout traps."),
     ("Edge sanity cap 15%", "Too good to be true means a data bug, not market-beating insight."),
     ("Game not started", "A bet logged after first pitch is hindsight, and hindsight poisons a track record."),
+    ("Both lineups posted", "Without lineups, lineup-power and matchup features run on placeholder averages — a flag built on defaults is not an opinion. Added after the July 17 incident this gate would have prevented."),
     ("Model must beat its baseline", "The totals model failed this check — so the system refuses its bets, automatically."),
 ]
 
@@ -197,7 +198,7 @@ def build_index(cheat_label):
 <div class="hero"><div class="wrap">
 <h1>Every call logged before first&nbsp;pitch. Graded&nbsp;after.</h1>
 <p class="sub">A student-built MLB model that compares its win probabilities against the
-betting market, bets on paper under an eight-gate policy, and publishes the graded ledger —
+betting market, bets on paper under a nine-gate policy, and publishes the graded ledger —
 wins, losses, and everything it refused to bet. Daily cards now carry a per-batter HR board:
 calibrated home-run probabilities (platoon, park, and weather adjusted) with the minimum
 odds worth taking.</p>
@@ -209,7 +210,7 @@ odds worth taking.</p>
 </div>
 </div></div>
 <section><div class="wrap">
-<h2>Eight gates between a flag and a bet</h2>
+<h2>Nine gates between a flag and a bet</h2>
 <p class="body">The model disagreeing with the market is not enough. Every prospective bet
 passes this checklist or is published as <em>suppressed, with the reason</em> — a system
 that hides its rejections can't be audited.</p>
@@ -229,7 +230,7 @@ def build_method():
 game-time weather feed 25 leakage-safe features — every rolling statistic uses only
 information available <em>before</em> the game it describes. A calibrated logistic regression
 produces win probabilities; those are compared against vig-removed consensus odds from nine
-sportsbooks; disagreements above threshold become flags; flags that clear all eight gates
+sportsbooks; disagreements above threshold become flags; flags that clear all nine gates
 become simulated 1-unit paper bets, logged with their odds, probability, expected value,
 and the model's top reasons. Final scores grade every bet automatically.</p>
 <h2>Why the probabilities can be trusted (and where they can't)</h2>

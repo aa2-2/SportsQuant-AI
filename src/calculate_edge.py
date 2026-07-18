@@ -387,6 +387,7 @@ if __name__ == "__main__":
             home_pitcher_known=sched_game["home_pitcher_name"] is not None,
             away_pitcher_known=sched_game["away_pitcher_name"] is not None,
             game_started=game_has_started(sched_game.get("game_time_utc")),
+            lineups_posted=bool(sched_game["home_lineup"]) and bool(sched_game["away_lineup"]),
         )
         card["approved"] = approved
         card["rejections"] = rejections
