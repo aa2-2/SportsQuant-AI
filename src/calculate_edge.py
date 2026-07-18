@@ -26,6 +26,7 @@ from bet_log import log_flag
 from bet_policy import FLAT_STAKE, evaluate_bet, expected_value, kelly_stake
 from explain import full_breakdown, load_raw_model, strength_label
 from report import build_report
+from mlb_api import get_json
 from teams import format_game_time
 from hr_model import hr_model_trusted, load_hr_model, predict_game_hrs
 from sim.live_board import board_total_hrs, hr_board_for_lineup, load_sim_rates
@@ -139,7 +140,13 @@ if __name__ == "__main__":
 
     scheduled = get_upcoming_schedule(target_date)
 
-    odds_df = pd.read_csv(DATA_DIR / "mlb_odds.csv")
+    odds_path = DATA_DIR / "mlb_odds.csv"
+    odds_age_h = (datetime.now().timestamp() - odds_path.stat().st_mtime) / 3600
+    if odds_age_h > 3:
+        print(f"WARNING: odds file is {odds_age_h:.1f} hours old — fetch_odds.py "
+              "likely failed (check your ODDS_API_KEY). Prices below are STALE; "
+              "do not publish flags from this run.")
+    odds_df = pd.read_csv(odds_path)
     odds_games = get_best_odds_per_game(odds_df)
 
     print(f"Scheduled games on {target_date}: {len(scheduled)}")
