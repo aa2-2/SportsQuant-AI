@@ -43,12 +43,14 @@ def build_pa_table(statcast_df, keep_cols=()):
     """
     pa = statcast_df[statcast_df["events"].notna()].copy()
     pa["outcome"] = pa["events"].map(EVENT_MAP).fillna("out")
+    # Barrel indicator: launch_speed_angle == 6 is Statcast's barrel definition
+    pa["is_barrel"] = (pa["launch_speed_angle"] == 6).astype(int)
     pa["game_date"] = pd.to_datetime(pa["game_date"])
     sort_keys = ["game_date", "game_pk"]
     if "at_bat_number" in pa.columns:
         sort_keys.append("at_bat_number")
     pa = pa.sort_values(sort_keys, kind="mergesort").reset_index(drop=True)
-    cols = ["game_pk", "game_date", "batter", "pitcher", "outcome"]
+    cols = ["game_pk", "game_date", "batter", "pitcher", "outcome", "is_barrel"]
     cols += [c for c in keep_cols if c in pa.columns and c not in cols]
     return pa[cols]
 
@@ -81,12 +83,51 @@ def add_rolling_rates(pa_df, entity_col, window=500, shrink_pa=200, prefix=None)
             (successes + shrink_pa * league) / (counts + shrink_pa)
         )
 
-    return df.drop(columns=[f"_is_{cat}" for cat in CATEGORIES])
+    # Barrel rate: barrels / balls_in_play (leakage-safe with shift(1))
+    # Barrel: launch_speed_angle == 6
+    # Ball in play: launch_speed not null (i.e., batted ball)
+    df["_is_barrel"] = df["is_barrel"].astype(float)
+    df["_is_ball_in_play"] = (
+        df["launch_speed"].notna() if "launch_speed" in df.columns
+        else df["outcome"].isin(["single", "double", "triple", "home_run"])).astype(float)
+
+    # League barrel rate (expanding, shift(1) for leakage protection)
+    barrel_sum = df["_is_barrel"].expanding().sum().shift(1)
+    bip_sum = df["_is_ball_in_play"].expanding().sum().shift(1)
+    league_barrel_rate = (barrel_sum / bip_sum).fillna(
+        df["_is_barrel"].sum() / max(df["_is_ball_in_play"].sum(), 1))
+
+    # Player barrel rates (shift(1) for leakage protection)
+    p_barrel = df.groupby(entity_col)["_is_barrel"].transform(
+        lambda s: s.shift(1).rolling(window, min_periods=1).sum())
+    p_bip = df.groupby(entity_col)["_is_ball_in_play"].transform(
+        lambda s: s.shift(1).rolling(window, min_periods=1).sum())
+    p_barrel = p_barrel.fillna(0.0)
+    p_bip = p_bip.fillna(0.0)
+    player_barrel_rate = (p_barrel + shrink_pa * league_barrel_rate) / (p_bip + shrink_pa)
+    player_barrel_rate = player_barrel_rate.fillna(
+        df["_is_barrel"].sum() / max(df["_is_ball_in_play"].sum(), 1))
+
+    df[f"{prefix}_barrel_rate"] = player_barrel_rate
+
+    return df.drop(columns=[f"_is_{cat}" for cat in CATEGORIES] + ["_is_barrel", "_is_ball_in_play"])
 
 
 def league_rates(pa_df):
     """Overall league per-PA rate for each category."""
     return {cat: float((pa_df["outcome"] == cat).mean()) for cat in CATEGORIES}
+
+
+def league_barrel_rate(pa_df):
+    """League barrel rate: barrels / balls_in_play."""
+    barrels = pa_df["is_barrel"].sum()
+    balls_in_play = (
+        pa_df["launch_speed"].notna().sum() if "launch_speed" in pa_df.columns
+        else (pa_df["outcome"].isin(["single", "double", "triple", "home_run"])).sum()
+    )
+    if balls_in_play == 0:
+        return 0.0
+    return barrels / balls_in_play
 
 
 def log5(p_batter, p_pitcher, p_league, floor=1e-5, ceiling=0.6, damp=1.0):
@@ -103,6 +144,35 @@ def log5(p_batter, p_pitcher, p_league, floor=1e-5, ceiling=0.6, damp=1.0):
     b = np.clip(p_batter, floor, ceiling)
     p = np.clip(p_pitcher, floor, ceiling)
     l = np.clip(p_league, floor, ceiling)
+    odds = (b / (1 - b)) * (p / (1 - p)) / (l / (1 - l))
+    raw = odds / (1 + odds)
+    return np.clip(damp * raw + (1.0 - damp) * l, floor, ceiling)
+
+
+def log5_with_xhr(p_batter_hr, p_pitcher_hr_allowed, p_league_hr,
+                  batter_barrel_rate, league_hr_per_barrel,
+                  floor=1e-5, ceiling=0.6, damp=1.0, xhr_weight=0.5):
+    """
+    Enhanced log5 for HR that incorporates barrel-based xHR prior.
+
+    Instead of using raw batter HR rate, uses a blended rate:
+    blended_hr_rate = xhr_weight * xHR_rate + (1 - xhr_weight) * batter_hr_rate
+    where xHR_rate = league_hr_per_barrel * batter_barrel_rate
+
+    This represents the idea that barrel rate (contact quality) is a
+    predictive signal for home run ability that stabilizes faster than
+    actual HR outcomes.
+    """
+    # Calculate xHR rate from barrel rate
+    xhr_rate = league_hr_per_barrel * batter_barrel_rate
+
+    # Blend xHR rate with actual HR rate
+    blended_hr_rate = xhr_weight * xhr_rate + (1 - xhr_weight) * p_batter_hr
+
+    # Use blended rate in standard log5 formula
+    b = np.clip(blended_hr_rate, floor, ceiling)
+    p = np.clip(p_pitcher_hr_allowed, floor, ceiling)
+    l = np.clip(p_league_hr, floor, ceiling)
     odds = (b / (1 - b)) * (p / (1 - p)) / (l / (1 - l))
     raw = odds / (1 + odds)
     return np.clip(damp * raw + (1.0 - damp) * l, floor, ceiling)

@@ -22,7 +22,7 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from config import DATA_DIR  # noqa: E402
 from sim.batter_rates import (  # noqa: E402
-    add_rolling_rates, build_pa_table, log5,
+    add_rolling_rates, build_pa_table, log5, log5_with_xhr
 )
 
 CUTOFF = "2026-03-25"
@@ -40,9 +40,11 @@ if __name__ == "__main__":
         print(f"Loading statcast_{year}.csv (PA columns only)...")
         frames.append(pd.read_csv(
             DATA_DIR / f"statcast_{year}.csv",
-            usecols=["game_pk", "game_date", "batter", "pitcher", "events"],
+            usecols=["game_pk", "game_date", "batter", "pitcher", "events",
+                     "launch_speed", "launch_speed_angle"],
         ))
-    pa = build_pa_table(pd.concat(frames, ignore_index=True))
+    pa = build_pa_table(pd.concat(frames, ignore_index=True),
+                        keep_cols=["launch_speed", "launch_speed_angle"])
     print(f"Plate appearances: {len(pa):,}")
 
     print("Computing rolling batter rates (this takes a minute)...")
@@ -57,7 +59,7 @@ if __name__ == "__main__":
     holdout = pa[pa["game_date"] >= CUTOFF].copy()
     print(f"\nHoldout 2026 PAs: {len(holdout):,}")
 
-    # Damping selected on a validation window strictly BEFORE the
+    # Damping and xhr_weight selected on a validation window strictly BEFORE the
     # holdout — tuning on the holdout would be lying with extra steps.
     val = pa[(pa["game_date"] >= "2025-07-01") & (pa["game_date"] < CUTOFF)]
     y_val = (val["outcome"] == "home_run").astype(float).values
@@ -72,10 +74,56 @@ if __name__ == "__main__":
         print(f"  damp {damp:.1f}: validation log-loss {ll:.5f}{marker}")
     print(f"Selected damp = {best_damp} (validation only)")
 
+    # Now find optimal xhr_weight using the same validation set
+    # Calculate barrel rate for validation set (leakage-safe)
+    is_barrel_val = (val["launch_speed_angle"] == 6).astype(float)
+    # Ball in play: not a walk, strikeout, or hit by pitch
+    is_bip_val = (~val["outcome"].isin(["walk", "strikeout", "hit_by_pitch", "intentional_walk"])).astype(float)
+    barrel_sum_val = is_barrel_val.rolling(window=500, min_periods=1).sum().shift(1)
+    bip_sum_val = is_bip_val.rolling(window=500, min_periods=1).sum().shift(1)
+    barrel_rate_val = (barrel_sum_val / bip_sum_val).fillna(0.08)  # league average
+
+    best_xhr_weight, best_xhr_ll = 0.5, float("inf")
+    for w in [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]:
+        # Calculate xhr rate for validation set: using league HR rate as proxy
+        xhr_rate = val["league_hr"].values * barrel_rate_val.values
+
+        # Blended hr rate
+        blended_hr = w * xhr_rate + (1 - w) * val["bat_home_run_rate"].values
+
+        ll = log_loss(y_val, log5_with_xhr(
+            blended_hr,
+            val["pit_home_run_rate"].values,
+            val["league_hr"].values,
+            barrel_rate_val.values,
+            val["league_hr"].values,  # Using league_hr as proxy for league_hr_per_barrel
+            damp=best_damp,
+            xhr_weight=w))
+        marker = ""
+        if ll < best_xhr_ll:
+            best_xhr_weight, best_xhr_ll, marker = w, ll, "  <- best"
+        print(f"  xhr_weight {w:.1f}: validation log-loss {ll:.5f}{marker}")
+    print(f"Selected xhr_weight = {best_xhr_weight} (validation only)")
+
+    # Prepare holdout data
     y = (holdout["outcome"] == "home_run").astype(float).values
-    p_model = log5(holdout["bat_home_run_rate"].values,
-                   holdout["pit_home_run_rate"].values,
-                   holdout["league_hr"].values, damp=best_damp)
+
+    # Calculate barrel rate for holdout set (leakage-safe)
+    is_barrel_holdout = (holdout["launch_speed_angle"] == 6).astype(float)
+    # Ball in play: not a walk, strikeout, or hit by pitch
+    is_bip_holdout = (~holdout["outcome"].isin(["walk", "strikeout", "hit_by_pitch", "intentional_walk"])).astype(float)
+    barrel_sum_holdout = is_barrel_holdout.rolling(window=500, min_periods=1).sum().shift(1)
+    bip_sum_holdout = is_bip_holdout.rolling(window=500, min_periods=1).sum().shift(1)
+    barrel_rate_holdout = (barrel_sum_holdout / bip_sum_holdout).fillna(0.08)  # league average
+
+    p_model = log5_with_xhr(
+        holdout["bat_home_run_rate"].values,
+        holdout["pit_home_run_rate"].values,
+        holdout["league_hr"].values,
+        barrel_rate_holdout.values,
+        holdout["league_hr"].values,  # Using league_hr as proxy for league_hr_per_barrel
+        damp=best_damp,
+        xhr_weight=best_xhr_weight)
     p_baseline = holdout["league_hr"].values
 
     model_ll = log_loss(y, p_model)

@@ -1,14 +1,5 @@
 """
-Precomputes CURRENT per-PA rates for every batter and pitcher — the
-live counterpart of Phase A. Run daily (fast) before calculate_edge:
-
-    python src/sim/build_current_rates.py
-
-Saves data/sim_rates.joblib: shrunk per-category rates as of right
-now, league rates, slot PA distributions, and starter share — enough
-for the daily cards to show the per-batter HR board (Phase A+B math,
-both gate-PASSED on 2026 holdout: PA log-loss beat baseline, game
-P(>=1 HR) calibrated, total HRs within 1%).
+Debug version of build_current_rates.py with progress prints
 """
 import sys
 from pathlib import Path
@@ -61,7 +52,7 @@ def current_rates(pa, entity_col, split_col=None):
 
 def compute_xhr_prior(pa, batter_rates, pitcher_rates, league, validation_start_date="2025-07-01"):
     """
-    Compute barrel-based xHR prior and optimize blending weight using validation set.
+    Compute barrel-based xHR prior and optimize blending weight.
 
     Returns:
     - batter_rates_updated: batter rates with blended HR rates
@@ -71,32 +62,32 @@ def compute_xhr_prior(pa, batter_rates, pitcher_rates, league, validation_start_
 
     # Calculate league barrel rate for reference
     lg_barrel_rate = league_barrel_rate(pa)
-    print(f"League barrel rate: {lg_barrel_rate:.4f}")
+    print(f"League barrel rate: {lg_barrel_rate}")
 
     # Calculate barrel rates for each batter using rolling window approach (leakage-safe)
-    # We need to compute a barrel rate for each PA in order, then we can map it to batters
-    print("Calculating barrel rates for all PAs...")
+    barrel_rates = {}
 
-    # Add barrel and ball_in_play indicators
-    pa_with_indicators = pa.copy()
-    pa_with_indicators["is_barrel"] = (pa_with_indicators["launch_speed_angle"] == 6).astype(float)
-    # Ball in play: not a walk, strikeout, or hit by pitch
-    pa_with_indicators["is_ball_in_play"] = (~pa_with_indicators["outcome"].isin(["walk", "strikeout", "hit_by_pitch", "intentional_walk"])).astype(float)
+    print("Calculating barrel rates for batters...")
+    batter_count = pa["batter"].nunique()
+    processed = 0
 
-    # Sort by date and at_bat_number to ensure chronological order
-    sort_cols = ["game_date"]
-    if "at_bat_number" in pa_with_indicators.columns:
-        sort_cols.append("at_bat_number")
-    pa_sorted = pa_with_indicators.sort_values(sort_cols)
+    for batter_id, batter_pa in pa.groupby("batter"):
+        processed += 1
+        if processed % 50 == 0:
+            print(f"  Processed {processed}/{batter_count} batters")
 
-    # Calculate rolling barrel rate for each batter (leakage-safe with shift(1))
-    print("Calculating rolling barrel rates...")
-    barrel_rates_series = pd.Series(index=pa_sorted.index, dtype=float)
+        # Sort by date to ensure proper temporal ordering
+        sort_cols = ["game_date"]
+        if "at_bat_number" in batter_pa.columns:
+            sort_cols.append("at_bat_number")
+        batter_pa_sorted = batter_pa.sort_values(sort_cols)
 
-    for batter_id, batter_pa in pa_sorted.groupby("batter"):
         # Calculate rolling sums, shifted by 1 to prevent leakage
-        barrels_rolling = batter_pa["is_barrel"].rolling(window=WINDOW, min_periods=1).sum().shift(1)
-        bip_rolling = batter_pa["is_ball_in_play"].rolling(window=WINDOW, min_periods=1).sum().shift(1)
+        is_barrel = (batter_pa_sorted["launch_speed_angle"] == 6).astype(float)
+        # Ball in play: not a walk, strikeout, or hit by pitch
+        is_bip = (~batter_pa_sorted["outcome"].isin(["walk", "strikeout", "hit_by_pitch", "intentional_walk"])).astype(float)
+        barrels_rolling = is_barrel.rolling(window=WINDOW, min_periods=1).sum().shift(1)
+        bip_rolling = is_bip.rolling(window=WINDOW, min_periods=1).sum().shift(1)
 
         # Calculate barrel rate (handle division by zero)
         barrel_rate = np.where(bip_rolling > 0, barrels_rolling / bip_rolling, 0.0)
@@ -108,11 +99,9 @@ def compute_xhr_prior(pa, batter_rates, pitcher_rates, league, validation_start_
         # Fill NaN values (first PA) with league average
         barrel_rate_shrunk = np.where(np.isnan(barrel_rate_shrunk), lg_barrel_rate, barrel_rate_shrunk)
 
-        # Assign back to the series
-        barrel_rates_series.loc[batter_pa.index] = barrel_rate_shrunk
+        barrel_rates[batter_id] = barrel_rate_shrunk
 
-    # Now barrel_rates_series has the barrel rate for each PA in chronological order
-    print(f"Calculated barrel rates for {len(barrel_rates_series)} PAs")
+    print(f"Finished calculating barrel rates for {len(barrel_rates)} batters")
 
     # Calculate optimal blending weight using validation period
     cutoff = "2026-03-25"
@@ -125,14 +114,8 @@ def compute_xhr_prior(pa, batter_rates, pitcher_rates, league, validation_start_
         optimal_damp = 0.9  # From our validation
         print("No validation data found, using defaults")
     else:
-        # Get validation data - we need to align with the sorted PA order
-        # Get the indices of validation PAs in the sorted dataframe
-        val_indices_sorted = pa_sorted[pa_sorted.index.isin(pa[val_mask].index)].index
-        # Get the barrel rates for these validation PAs
-        val_barrel = barrel_rates_series.loc[val_indices_sorted].values
-
-        # Get validation data from pa_sorted using the same indices
-        val_pa = pa_sorted.loc[val_indices_sorted]
+        # Get validation data
+        val_pa = pa[val_mask].copy()
         y_val = (val_pa["outcome"] == "home_run").astype(float).values
         print(f"Validation set size: {len(y_val)}")
 
@@ -140,11 +123,20 @@ def compute_xhr_prior(pa, batter_rates, pitcher_rates, league, validation_start_
         batters_val = val_pa["batter"].values
         pitchers_val = val_pa["pitcher"].values
 
-        # Get league HR rate for validation set (expanding + shifted) - calculated from original pa order
+        # Calculate barrel rate for validation set (leakage-safe) - using same approach as above
+        print("Calculating validation barrel rates...")
+        is_barrel_val = (val_pa["launch_speed_angle"] == 6).astype(float)
+        # Ball in play: not a walk, strikeout, or hit by pitch
+        is_bip_val = (~val_pa["outcome"].isin(["walk", "strikeout", "hit_by_pitch", "intentional_walk"])).astype(float)
+        barrels_rolling_val = is_barrel_val.rolling(window=WINDOW, min_periods=1).sum().shift(1)
+        bip_rolling_val = is_bip_val.rolling(window=WINDOW, min_periods=1).sum().shift(1)
+        barrel_rate_val = (barrels_rolling_val / bip_rolling_val).fillna(lg_barrel_rate)  # league average
+
+        # Get league HR rate for validation set (expanding + shifted)
         is_hr = (pa["outcome"] == "home_run").astype(float)
         league_hr = is_hr.expanding().mean().shift(1).fillna(is_hr.mean())
-        # Now extract values for validation set in the same order
-        league_hr_vals = league_hr.loc[val_indices_sorted].values
+        league_hr_vals = league_hr.values[val_mask]
+        print(f"League HR values shape: {league_hr_vals.shape}")
 
         # Get batter HR rates for validation set
         print("Getting batter HR rates for validation set...")
@@ -176,7 +168,7 @@ def compute_xhr_prior(pa, batter_rates, pitcher_rates, league, validation_start_
                     print(f"  Progress: {current}/{total_combinations} combinations tested")
 
                 # Calculate xhr rate for validation set: using league HR rate as proxy for league_hr_per_barrel
-                xhr_rate = league_hr_vals * val_barrel
+                xhr_rate = league_hr_vals * barrel_rate_val.values
 
                 # Blended hr rate
                 blended_hr = w * xhr_rate + (1 - w) * bat_hr_rates
@@ -188,7 +180,7 @@ def compute_xhr_prior(pa, batter_rates, pitcher_rates, league, validation_start_
                         blended_hr[i],
                         pit_hr_rates[i],
                         league_hr_vals[i],
-                        val_barrel[i],
+                        barrel_rate_val.values[i],
                         league_hr_vals[i],  # Using league_hr as proxy for league_hr_per_barrel
                         damp=damp,
                         xhr_weight=w)
@@ -224,21 +216,11 @@ def compute_xhr_prior(pa, batter_rates, pitcher_rates, league, validation_start_
         # Get original HR rate
         original_hr_rate = rates["overall"].get("home_run", league["home_run"])
 
-        # Get barrel rate for this batter (we need the most recent barrel rate)
-        # For simplicity, we'll use the average barrel rate for this batter
-        # In a production setting, we might want the most recent rate
-        batter_pa_indices = pa_sorted[pa_sorted["batter"] == batter_id].index
-        if len(batter_pa_indices) > 0:
-            # Get barrel rates for this batter's PAs
-            batter_barrel_rates = barrel_rates_series.loc[batter_pa_indices]
-            # Use the most recent barrel rate (last non-NaN value)
-            valid_rates = batter_barrel_rates[~np.isnan(batter_barrel_rates)]
-            if len(valid_rates) > 0:
-                barrel_rate = valid_rates.iloc[-1]  # Most recent
-            else:
-                barrel_rate = lg_barrel_rate  # Default to league average
-        else:
-            barrel_rate = lg_barrel_rate  # Default to league average
+        # Get barrel rate for this batter (use most recent value, default to league average)
+        barrel_rate = lg_barrel_rate  # Default
+        if batter_id in barrel_rates and len(barrel_rates[batter_id]) > 0:
+            # Get the most recent barrel rate (last element)
+            barrel_rate = barrel_rates[batter_id][-1]
 
         # Calculate xHR rate: league HR rate * barrel rate
         xhr_rate = league["home_run"] * barrel_rate
@@ -269,6 +251,7 @@ def compute_xhr_prior(pa, batter_rates, pitcher_rates, league, validation_start_
 
 
 if __name__ == "__main__":
+    print("Starting build_current_rates_debug.py...")
     frames = []
     cols = ["game_pk", "game_date", "batter", "pitcher", "events",
             "inning_topbot", "home_team", "away_team", "at_bat_number",
@@ -324,7 +307,7 @@ if __name__ == "__main__":
         "slot_dist": slot_pa_distribution(pa),
         "starter_share": starter_share(pa),
         "damp": 0.9,  # Use the damp value from our validation
-        "asof": str(pa["game_date"].max().date()),
+        "asof": str(pa["date"].max().date()),
         "xhr_weight": xhr_weight,  # Store the optimal weight for transparency
     }
     joblib.dump(bundle, DATA_DIR / "sim_rates.joblib")
