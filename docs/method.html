@@ -54,39 +54,12 @@
     scheme rebuilt after a placeholder bias was caught flagging every road team on one slate —
     graded honestly in the project log). The sample of settled bets is small; nothing here is a
     conclusion yet. That's what the ledger is for.</p>
-    <h2>Recent Model Improvement: Phase 5.2 Barrel-based xHR Prior</h2>
-    <div class="method-diagram">
-    <p><strong>Enhanced home run prediction using Statcast barrel data:</strong></p>
-    <div class="method-step">
-    <div class="method-step-number">1</div>
-    <div class="method-step-content">
-    <div class="method-step-title">Barrel Rate Calculation</div>
-    <div class="method-step-description">For each batter, calculate rolling barrel rate (barrels/batted ball events) using Statcast's barrel definition (launch_speed_angle == 6) with leakage protection via shift(1) windows.</div>
-    </div>
-    </div>
-    <div class="method-step">
-    <div class="method-step-number">2</div>
-    <div class="method-step-content">
-    <div class="method-step-title">Expected HR Rate (xHR)</div>
-    <div class="method-step-description">Convert barrel rate to expected home run rate using league-wide HR per barrel ratio, then apply Bayesian shrinkage to stabilize small sample estimates.</div>
-    </div>
-    </div>
-    <div class="method-step">
-    <div class="method-step-number">3</div>
-    <div class="method-step-content">
-    <div class="method-step-title">Blending with Observed HR</div>
-    <div class="method-step-description">Mix barrel-based xHR rate with observed HR rate using optimized weight (xhr_weight) determined by validation set performance to prevent overfitting.</div>
-    </div>
-    </div>
-    <div class="method-step">
-    <div class="method-step-number">4</div>
-    <div class="method-step-content">
-    <div class="method-step-title">Log5 Integration</div>
-    <div class="method-step-description">Blend the prior with observed rates using the log5 framework: combined_hr = (xhr_weight * xHR_rate) + ((1 - xhr_weight) * observed_hr_rate), then apply log5 with pitcher and league averages.</div>
-    </div>
-    </div>
-    </div>
-    <p class="body">This improvement enhances home run prediction accuracy by incorporating batted ball quality metrics while maintaining all existing model validation gates.</p>
+    <h2>Experiment log: barrel-based xHR prior (tested, not shipped)</h2>
+    <p class="body">A barrel-quality prior for home-run rates was built and put through the
+    same validation gate as everything else. The gate's verdict: blending it in made held-out
+    predictions worse at every weight tried, so validation selected a weight of zero — the
+    experiment runs at no influence. Logged for a corrected retry. Negative results are
+    results.</p>
     </div></section>
     
 <footer><div class="wrap">All stakes are simulated 1-unit paper bets — a public, timestamped
