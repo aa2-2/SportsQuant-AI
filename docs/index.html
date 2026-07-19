@@ -1,49 +1,225 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0F172A">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
-<title>Live ledger - MLBQuant</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
-<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js');}</script>
-</head><body>
-<header><div class="wrap nav-container">
-<div class="logo">
-<img src="icon-192.png" alt="MLBQuant logo" class="logo-img">
-<span class="logo-text">MLBQUANT</span>
-</div>
-<nav class="nav-links"><a href="season.html">Results</a><a href="today.html">Today</a><a href="method.html">Method</a></nav>
-</div></header>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLBQuant - Professional Baseball Analytics</title>
+    <meta name="theme-color" content="#0F172A">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Mobile Sidebar -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-close" id="sidebarClose">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </div>
+                <h2 class="sidebar-title">MLBQuant</h2>
+            </div>
 
-    <div class="hero"><div class="wrap">
-    <h1>Every call logged before first&nbsp;pitch. Graded&nbsp;after.</h1>
-    <p class="sub">A student-built MLB model that compares its win probabilities against the
-    betting market, bets on paper under a nine-gate policy, and publishes the graded ledger —
-    wins, losses, and everything it refused to bet. Daily cards now carry a per-batter HR board:
-    calibrated home-run probabilities (platoon, park, and weather adjusted) with the minimum
-    odds worth taking.</p>
-    <div class="ledger"><div class="ledger-head mono">
-<div class="stat"><div class="l">Record</div><div class="n">0-1</div></div>
-<div class="stat"><div class="l">P&L</div><div class="n loss">-1.0u</div></div>
-<div class="stat"><div class="l">ROI</div><div class="n loss">-100.0%</div></div>
-<div class="stat"><div class="l">Pending</div><div class="n">0</div></div>
-</div><div class="rows"><div class="row headrow mono"><div>Date</div><div>Pick</div><div class="hide-m">Odds / Model</div><div>Grade</div><div class="hide-m">Units</div></div><div class="row mono"><div>2026-07-16</div><div>PHI ML <span style="color:var(--muted)">(New York Mets @ Philadelphia Phillies)</span></div><div class="hide-m">-119 / 58%</div><div class="grade L">L</div><div class="hide-m">-1.00u</div></div></div></div>
-    <div class="actions">
-    <a class="btn solid" href="season.html">Full season ledger</a>
-    <a class="btn" href="today.html">Card: 2026-07-19</a>
-    <a class="btn" href="method.html">How it works</a>
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <h3 class="nav-section-title">PLAYER TOOLS</h3>
+                    <nav class="nav-menu">
+                        <a href="#" class="nav-item active">Dashboard</a>
+                        <a href="#" class="nav-item">Game Cheat Sheets</a>
+                        <a href="#" class="nav-item">Homer AI</a>
+                        <a href="#" class="nav-item">Home Runs Model</a>
+                        <a href="#" class="nav-item">Lasers/Moonshots Model</a>
+                        <a href="#" class="nav-item">Extra Base Hits Model</a>
+                        <a href="#" class="nav-item">Hits/HRR Model</a>
+                        <a href="#" class="nav-item">Stolen Bases Model</a>
+                        <a href="#" class="nav-item">Pitcher Strikeouts Model</a>
+                        <a href="#" class="nav-item">Pitcher Vulnerability Report</a>
+                        <a href="#" class="nav-item">Pitcher Weak Spots</a>
+                        <a href="#" class="nav-item">Bullpen Report</a>
+                        <a href="#" class="nav-item">Barrel Zone</a>
+                        <a href="#" class="nav-item">HR Regression Model</a>
+                        <a href="#" class="nav-item">Zero HR Lineup</a>
+                    </nav>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">MY TOOLS</h3>
+                    <nav class="nav-menu">
+                        <a href="#" class="nav-item">Custom Tagging <span class="badge badge-new">NEW</span></a>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <a href="#" class="nav-item">Settings</a>
+                <a href="#" class="nav-element">Help & Support</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="app-header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button id="sidebarToggle" class="header-button">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg>
+                        </button>
+                        <div class="header-title">
+                            <h1>MLB Analytics Dashboard</h1>
+                            <p class="header-subtitle">Professional baseball prediction model</p>
+                        </div>
+                    </div>
+
+                    <div class="header-right">
+                        <button class="header-button" id="filterBtn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 7H6a2 2 0 00-2 2v9a2 2 0 002 2h9a2 2 0 002-2v-5"></path>
+                                <path d="M14 2v4a2 2 0 002 2h4"></path>
+                            </svg>
+                            Filters
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Hero Section -->
+            <section class="hero-section">
+                <div class="hero-content">
+                    <h1>MLB Game Weather & Matchup Analysis</h1>
+                    <p class="hero-subtitle">
+                        Professional-grade weather analysis and player matchup data for informed betting decisions
+                    </p>
+                    <div class="hero-actions">
+                        <button class="btn btn-primary" id="todayBtn">Today's Games</button>
+                        <button class="btn btn-secondary" id="seasonBtn">Season Trends</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stats Overview -->
+            <section class="stats-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalGames">0</div>
+                        <div class="stat-label">Games Analyzed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="barrelPct">0.0%</div>
+                        <div class="stat-label">Barrel Rate</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgExitVelo">0.0</div>
+                        <div class="stat-label">Avg Exit Velocity (mph)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="hrWeatherImpact">0.0%</div>
+                        <div class="stat-label">HR Weather Impact</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Games/Card Section -->
+            <section class="games-section">
+                <div class="games-header">
+                    <h2>Today's Matchups</h2>
+                    <div class="games-filter">
+                        <select id="dateFilter">
+                            <option value="today">Today</option>
+                            <option value="tomorrow">Tomorrow</option>
+                            <option value="this_week">This Week</option>
+                        </select>
+                        <input type="text" id="searchFilter" placeholder="Search teams...">
+                    </div>
+                </div>
+
+                <div class="games-grid" id="gamesGrid">
+                    <!-- Game cards will be populated here -->
+                </div>
+            </section>
+
+            <!-- Models Section -->
+            <section class="models-section">
+                <div class="section-header">
+                    <h2>Available Prediction Models</h2>
+                    <p class="section-description">Advanced machine learning models for baseball forecasting</p>
+                </div>
+
+                <div class="models-grid">
+                    <div class="model-card">
+                        <div class="model-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                        </div>
+                        <h3>Home Run Prediction</h3>
+                        <p>ML model trained onStatcast data including barrel rates, exit velocity, and launch angle</p>
+                        <div class="model-status active">
+                            <span class="status-dot"></span>
+                            <span>Active</span>
+                        </div>
+                    </div>
+
+                    <div class="model-card">
+                        <div class="model-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                        </div>
+                        <h3>Pitch Analysis</h3>
+                        <p>Analyze pitch sequencing, velocity, and movement patterns</p>
+                        <div class="model-status">
+                            <span class="status-dot"></span>
+                            <span>Active</span>
+                        </div>
+                    </div>
+
+                    <div class="model-card">
+                        <div class="model-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path>
+                            </svg>
+                        </div>
+                        <h3>Weather Impact</h3>
+                        <p>Calculate how wind, temperature, and humidity affect ball flight</p>
+                        <div class="model-status active">
+                            <span class="status-dot"></span>
+                            <span>Active</span>
+                        </div>
+                    </div>
+
+                    <div class="model-card">
+                        <div class="model-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 12l2 2 4-4"></path>
+                                <circle cx="5" cy="12" r="2"></circle>
+                            </svg>
+                        </div>
+                        <h3>Batter vs Pitcher</h3>
+                        <p>Historical matchup analytics with platoon splits</p>
+                        <div class="model-status">
+                            <span class="status-dot"></span>
+                            <span>Available</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
     </div>
-    </div></div>
-    <section><div class="wrap">
-    <h2>Nine gates between a flag and a bet</h2>
-    <p class="body">The model disagreeing with the market is not enough. Every prospective bet
-    passes this checklist or is published as <em>suppressed, with the reason</em> — a system
-    that hides its rejections can't be audited.</p>
-    <ol class="gates"><li><div><b>Minimum edge 3%</b><span>Below that, model-vs-market disagreement is noise.</span></div></li><li><div><b>Expected value at the real price</b><span>The edge must survive the vig — profit is computed at the posted odds, not the fair line.</span></div></li><li><div><b>Probability band 30–70%</b><span>The side doesn't need to be favored, but it must sit where the model's calibration is proven.</span></div></li><li><div><b>Both starting pitchers posted</b><span>A flag built on placeholder pitching isn't the model's real opinion.</span></div></li><li><div><b>Odds between −250 and +250</b><span>Beyond that, “edges” are usually stale lines or payout traps.</span></div></li><li><div><b>Edge sanity cap 15%</b><span>Too good to be true means a data bug, not market-beating insight.</span></div></li><li><div><b>Game not started</b><span>A bet logged after first pitch is hindsight, and hindsight poisons a track record.</span></div></li><li><div><b>Both lineups posted</b><span>Without lineups, lineup-power and matchup features run on placeholder averages — a flag built on defaults is not an opinion. Added after the July 17 incident this gate would have prevented.</span></div></li><li><div><b>Model must beat its baseline</b><span>The totals model failed this check — so the system refuses its bets, automatically.</span></div></li></ol>
-    </div></section>
-    
-<footer><div class="wrap">All stakes are simulated 1-unit paper bets — a public, timestamped
-model track record, not wagering advice. Built by a student; every pick is logged before
-first pitch and graded after. <a href="https://github.com/aa2-2/SportsQuant-AI">Source on GitHub</a>.
-</div></footer></body></html>
+
+    <!-- Overlay for mobile sidebar -->
+    <div id="overlay" class="overlay"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

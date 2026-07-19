@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html><head><meta charset='utf-8'><title>MLBQuant — Season Results</title>
+<style>
+* { box-sizing:border-box; margin:0; }
+body { background:#f4f1ea; color:#1a1a1a; font-family:'Segoe UI',system-ui,sans-serif; padding:32px 16px; }
+.wrap { max-width:900px; margin:0 auto; }
+.tophead { display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; }
+h1 { font-size:30px; font-weight:800; }
+.pill { background:#d9ead9; color:#1a7a3a; font-size:12px; font-weight:700; padding:4px 14px; border-radius:999px; letter-spacing:.05em; }
+.stats { display:grid; grid-template-columns:repeat(2,1fr); gap:26px 40px; text-align:center; margin-bottom:30px; }
+.stat .l { font-size:12px; color:#8a8578; text-transform:uppercase; letter-spacing:.12em; margin-bottom:6px; }
+.stat .n { font-size:34px; font-weight:800; font-variant-numeric:tabular-nums; }
+.pos { color:#1a9a4a; } .neg { color:#c23b3b; }
+.meta { text-align:center; color:#8a8578; font-size:13px; margin-bottom:26px; }
+h2 { font-size:16px; font-weight:700; margin:26px 0 10px; }
+.chartbox { background:#faf8f3; border:1px solid #e2ddd0; border-radius:12px; padding:16px; }
+.legend { display:flex; gap:18px; justify-content:center; font-size:12px; color:#555; margin-top:8px; }
+.legend span::before { content:''; display:inline-block; width:18px; height:3px; margin-right:6px; vertical-align:middle; border-radius:2px; }
+.leg-total::before { background:#1a1a1a; } .leg-ml::before { background:#2f6fd6; }
+.leg-ou::before { background:#d99a22; } .leg-kelly::before { background:#7a5fd0; }
+table { width:100%; border-collapse:collapse; font-size:12.5px; background:#faf8f3; border:1px solid #e2ddd0; border-radius:12px; overflow:hidden; }
+th { text-align:left; padding:9px 10px; color:#8a8578; font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; border-bottom:1px solid #e2ddd0; }
+td { padding:8px 10px; border-bottom:1px solid #eee8db; font-variant-numeric:tabular-nums; }
+tr:last-child td { border-bottom:none; }
+.tier { font-size:10px; font-weight:800; padding:2px 8px; border-radius:999px; }
+.tier.HIGH { background:#d9ead9; color:#1a7a3a; } .tier.MEDIUM { background:#f4e6c4; color:#9a6d10; }
+.won { color:#1a9a4a; font-weight:700; } .lost { color:#c23b3b; font-weight:700; } .pendingtxt { color:#8a8578; }
+.footer { color:#8a8578; font-size:12px; margin-top:24px; line-height:1.6; }
+.empty { text-align:center; color:#8a8578; padding:40px 0; }
+</style></head><body><div class='wrap'>
+<div class='tophead'><h1>Season Results</h1><span class='pill'>PAPER · 2026</span></div>
+<div class='stats'>
+  <div class='stat'><div class='l'>Record</div><div class='n'>0-1</div></div>
+  <div class='stat'><div class='l'>P&amp;L</div><div class='n neg'>-1.0u</div></div>
+  <div class='stat'><div class='l'>ROI</div><div class='n neg'>-100.0%</div></div>
+  <div class='stat'><div class='l'>Win Rate</div><div class='n'>0.0%</div></div>
+</div>
+<div class='meta'>1 bets logged · 0 pending · only 1 settled — far too few to conclude anything yet · 1/4-Kelly reference: -0.02u on 0.02u staked (-100.0% ROI)
+· generated 2026-07-18 10:53</div>
+<h2>Cumulative P&amp;L</h2>
+<div class='chartbox'><svg viewBox='0 0 820 300' width='100%' xmlns='http://www.w3.org/2000/svg'><line x1='46' y1='472.0' x2='808' y2='472.0' stroke='#e2ddd0' stroke-dasharray='3,4'/><text x='38' y='476.0' font-size='11' fill='#8a8578' text-anchor='end'>-2u</text><line x1='46' y1='252.0' x2='808' y2='252.0' stroke='#e2ddd0' stroke-dasharray='3,4'/><text x='38' y='256.0' font-size='11' fill='#8a8578' text-anchor='end'>-1u</text><line x1='46' y1='32.0' x2='808' y2='32.0' stroke='#e2ddd0' stroke-dasharray='3,4'/><text x='38' y='36.0' font-size='11' fill='#8a8578' text-anchor='end'>0u</text><polyline points='46.0,36.4' fill='none' stroke='#7a5fd0' stroke-width='2.4' stroke-dasharray='5,4'/><polyline points='46.0,32.0' fill='none' stroke='#d99a22' stroke-width='2.4'/><polyline points='46.0,252.0' fill='none' stroke='#2f6fd6' stroke-width='2.4'/><polyline points='46.0,252.0' fill='none' stroke='#1a1a1a' stroke-width='2.4'/></svg><div class='legend'><span class='leg-total'>TOTAL (flat 1u)</span><span class='leg-ml'>ML</span><span class='leg-ou'>O/U</span><span class='leg-kelly'>1/4-Kelly (reference)</span></div></div>
+<h2>Bet Log</h2>
+<table><tr><th>Date</th><th>Matchup</th><th>Pick</th><th>Tier</th><th>Odds</th><th>Model</th><th>Market</th><th>Edge</th><th>Result</th><th>Running</th></tr><tr><td>2026-07-16</td><td>New York Mets @ Philadelphia Phillies</td><td><b>PHI ML</b></td><td><span class='tier MEDIUM'>MEDIUM</span></td><td>-119</td><td>57.9%</td><td>53.5%</td><td>+4.4%</td><td><span class='lost'>LOST -1.00u</span></td><td>-1.00u</td></tr></table>
+<div class='footer'>All stakes are simulated 1-unit flat paper bets — no real money. The quarter-Kelly
+line is recorded for sizing comparison only. Every entry was approved by the six-gate policy in
+bet_policy.py before logging; games already started are never logged.</div>
+</div></body></html>

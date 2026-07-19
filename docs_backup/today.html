@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html><head><meta charset='utf-8'>
+<title>MLBQuant — Edge Report 2026-07-19</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; margin: 0; }
+body { background:#0d1117; color:#e6edf3; font-family:'Segoe UI',system-ui,sans-serif; padding:32px 16px; }
+.wrap { max-width: 860px; margin: 0 auto; }
+h1 { font-size: 22px; margin-bottom: 4px; }
+.sub { color:#8b949e; font-size: 13px; margin-bottom: 20px; }
+.totals { display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap; }
+.stat { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:12px 18px; }
+.stat .n { font-size:20px; font-weight:700; }
+.stat .l { font-size:11px; color:#8b949e; text-transform:uppercase; letter-spacing:.05em; }
+.card { background:#161b22; border:1px solid #30363d; border-radius:12px; padding:20px; margin-bottom:18px; }
+.head { display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; }
+.matchup { font-size:18px; font-weight:700; }
+.meta { color:#8b949e; font-size:12px; }
+.odds { display:flex; gap:10px; margin:14px 0; flex-wrap:wrap; }
+.oddbox { background:#0d1117; border:1px solid #30363d; border-radius:8px; padding:8px 14px; font-size:13px; }
+.oddbox b { font-size:15px; }
+.probbar { height:10px; border-radius:5px; background:#1f6feb33; overflow:hidden; margin:8px 0 4px; }
+.probbar div { height:100%; background:#1f6feb; }
+.problabel { display:flex; justify-content:space-between; font-size:12px; color:#8b949e; margin-bottom:12px; }
+.rec { border-radius:10px; padding:14px 16px; margin-top:6px; }
+.rec.high { background:#0f2e1c; border:1px solid #2ea043; }
+.rec.medium { background:#2d2308; border:1px solid #d29922; }
+.rec.none { background:#21262d; border:1px solid #30363d; color:#8b949e; }
+.tier { display:inline-block; font-size:11px; font-weight:700; letter-spacing:.08em; padding:2px 10px; border-radius:999px; margin-right:8px; }
+.tier.high { background:#2ea043; color:#04120a; }
+.tier.medium { background:#d29922; color:#1c1503; }
+.pick { font-size:16px; font-weight:700; }
+.edge { float:right; font-weight:700; }
+ul.reasons { margin:10px 0 0 0; padding-left:18px; font-size:13px; line-height:1.7; }
+.abbrs { font-size:20px; font-weight:800; letter-spacing:.02em; }
+.fullnames { color:#8b949e; font-size:12px; margin-top:2px; }
+.markets { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:14px 0; }
+.mkt { background:#0d1117; border:1px solid #30363d; border-radius:8px; padding:10px 12px; }
+.mkt .t { font-size:10px; color:#8b949e; text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px; }
+.mkt .r { display:flex; justify-content:space-between; font-size:13px; padding:1px 0; }
+.mkt .r b { font-variant-numeric:tabular-nums; }
+.rechead { font-size:11px; color:#8b949e; text-transform:uppercase; letter-spacing:.08em; margin:12px 0 6px; }
+.norec { color:#8b949e; font-size:13px; padding:8px 0 0; }
+@media (max-width:640px){ .markets { grid-template-columns:1fr; } }
+.strip { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 18px; }
+.gchip { display:block; background:#161b22; border:1px solid #30363d; border-radius:10px;
+  padding:8px 12px; text-decoration:none; color:#e6edf3; font-size:12px; min-width:118px; }
+.gchip b { display:block; font-size:13px; }
+.gchip .t { color:#8b949e; }
+.gchip .e { font-weight:700; }
+.gchip .e.high { color:#3fb950; } .gchip .e.medium { color:#d29922; } .gchip .e.none { color:#8b949e; }
+.status { display:inline-block; font-size:10px; font-weight:700; padding:1px 8px;
+  border-radius:999px; margin-left:6px; vertical-align:middle; }
+.status.started { background:#3a1516; color:#f85149; }
+.status.upcoming { background:#21262d; color:#8b949e; }
+ul.reasons .against { color:#8b949e; }
+.dq { margin-top:10px; font-size:12px; color:#8b949e; }
+.wchip { display:inline-block; font-size:11px; font-weight:700; padding:2px 10px; border-radius:999px; margin-left:6px; }
+.wchip.pos { background:#0f2e1c; color:#3fb950; border:1px solid #2ea043; }
+.wchip.neg { background:#3a1516; color:#f85149; border:1px solid #da3633; }
+.wchip.neu { background:#21262d; color:#8b949e; border:1px solid #30363d; }
+.hrboard { margin-top:12px; }
+.hrboard table { width:100%; border-collapse:collapse; font-size:12px; }
+.hrboard th { text-align:left; color:#8b949e; font-weight:600; padding:4px 8px;
+  border-bottom:1px solid #30363d; }
+.hrboard td { padding:4px 8px; border-bottom:1px solid #21262d; }
+.hrboard td.num { font-variant-numeric:tabular-nums; }
+.hrboard .teamtag { color:#8b949e; font-size:11px; }
+.bestbets { margin:0 0 18px; }
+.bestbets h2 { font-size:16px; margin:0 0 10px; color:#e6edf3; }
+.bb { background:#12261a; border:1px solid #2ea043; border-radius:12px; padding:14px 16px; margin-bottom:10px; }
+.bb.medium { background:#241d0e; border-color:#9e6a03; }
+.bb .pickline { font-size:17px; font-weight:800; }
+.bb .conf { font-size:11px; font-weight:700; letter-spacing:.08em; padding:2px 10px;
+  border-radius:999px; margin-left:8px; vertical-align:middle; }
+.bb .conf.high { background:#1a7f37; color:#fff; } .bb .conf.medium { background:#9e6a03; color:#fff; }
+.bb .plain { color:#b6c2cf; font-size:13px; margin-top:6px; }
+.nobets { background:#161b22; border:1px solid #30363d; border-radius:12px; padding:14px 16px;
+  margin-bottom:18px; color:#b6c2cf; font-size:14px; }
+.hrtop { background:#161b22; border:1px solid #30363d; border-radius:12px; padding:12px 16px; margin-bottom:18px; }
+.hrtop b { font-size:14px; } .hrtop .plain { color:#b6c2cf; font-size:13px; margin-top:4px; }
+.modelnote { color:#8b949e; font-size:12px; margin:18px 0; }
+.footer { color:#8b949e; font-size:12px; margin-top:28px; line-height:1.6; }
+</style></head><body><div class='wrap'>
+<h1>MLBQUANT — Daily Card</h1>
+<div class='sub'>2026-07-19 · generated 2026-07-19 18:14 ·
+moneyline model vs best available market price</div>
+<div class='totals'>
+  <div class='stat'><div class='n'>16</div><div class='l'>Games</div></div>
+  <div class='stat'><div class='n'>0</div><div class='l'>Recommended</div></div>
+  <div class='stat'><div class='n'>0 High · 0 Medium</div><div class='l'>Confidence</div></div>
+</div>
+<div class='nobets'><b>No bets today.</b> The model found no game where it disagrees with the sportsbooks enough to risk anything — most days look like this, and passing is a position.</div>
+<div class='hrtop'><b>Best home run plays</b><div class='plain'><b>Shea Langeliers</b> — 33% chance of a home run tonight. Worth a bet only if a sportsbook pays +210 or longer.</div><div class='plain'><b>Mickey Moniak</b> — 30% chance of a home run tonight. Worth a bet only if a sportsbook pays +240 or longer.</div><div class='plain'><b>Shohei Ohtani</b> — 29% chance of a home run tonight. Worth a bet only if a sportsbook pays +250 or longer.</div></div>
+<div class='strip'><a class='gchip' href='#g0'><b>CWS @ TOR<span class='status started'>STARTED</span></b><span class='t'>12:15 PM ET</span> <span class='e none'>—</span></a><a class='gchip' href='#g1'><b>LAD @ NYY</b><span class='t'>7:20 PM ET</span> <span class='e none'>—</span></a><a class='gchip' href='#g2'><b>TB @ BOS<span class='status started'>STARTED</span></b><span class='t'>1:35 PM ET</span> <span class='e none'>—</span></a><a class='gchip' href='#g3'><b>NYM @ PHI<span class='status started'>STARTED</span></b><span class='t'>1:35 PM ET</span> <span class='e none'>—</span></a><a class='gchip' href='#g4'><b>PIT @ CLE<span class='status started'>STARTED</span></b><span class='t'>1:40 PM ET</span> <span class='e none'>—</span></a><a class='gchip' href='#g5'><b>BAL @ HOU<span class='status started'>STARTED</span></b><span class='t'>2:10 PM ET</span> <span class='e none'>—</span></a><a class='gchip' href='#g6'><b>SD @ KC<span class='status started'>STARTED</span></b><span class='t'>2:10 PM ET</span> <span class='e none'>—</span></a><a class='gchip' href='#g7'><b>MIA @ MIL<span class='status started'>STARTED</span></b><span class='t'>2:10 PM ET</span> <span class='e none'>—</span></a><a class='gchip' href='#g8'><b>MIN @ CHC<span class='status started'>STARTED</span></b><span class='t'>2:20 PM ET</span> <span class='e none'>—</span></a><a class='gchip' href='#g9'><b>CIN @ COL<span class='status started'>STARTED</span></b><span class='t'>3:10 PM ET</span> <span class='e none'>—</span></a><a class='gchip' href='#g10'><b>WSH @ ATH<span class='status started'>STARTED</span></b><span class='t'>4:05 PM ET</span> <span class='e none'>—</span></a><a class='gchip' href='#g11'><b>DET @ LAA<span class='status started'>STARTED</span></b><span class='t'>4:07 PM ET</span> <span class='e none'>—</span></a><a class='gchip' href='#g12'><b>SF @ SEA<span class='status started'>STARTED</span></b><span class='t'>4:10 PM ET</span> <span class='e none'>—</span></a><a class='gchip' href='#g13'><b>STL @ AZ<span class='status started'>STARTED</span></b><span class='t'>4:10 PM ET</span> <span class='e none'>—</span></a></div>
+
+    <div class='card' id='g0'>
+      <div class='head'>
+        <div>
+          <div class='abbrs'>CWS @ TOR</div>
+          <div class='fullnames'>Chicago White Sox at Toronto Blue Jays</div>
+        </div>
+        <span class='meta'>12:15 PM ET · Rogers Centre</span>
+      </div>
+      
+      <div class='markets'>
+        <div class='mkt'><div class='t'>Moneyline</div>
+          <div class='r'><span>CWS</span><b>-108</b></div>
+          <div class='r'><span>TOR</span><b>+102</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Run Line</div>
+          <div class='r'><span>CWS +1.5</span><b>-130</b></div>
+          <div class='r'><span>TOR -1.5</span><b>+200</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Total: 8</div>
+          <div class='r'><span>Over</span><b>-113</b></div>
+          <div class='r'><span>Under</span><b>-102</b></div>
+          <div class='r'><span>Proj HRs</span><b>2.4</b></div>
+        </div>
+      </div>
+      <div class='probbar'><div style='width:54.7%'></div></div>
+      <div class='problabel'><span>CWS 45.3%</span><span>TOR 54.7%</span></div>
+      <div class='rechead'>Moneyline Recommendation</div>
+      <div class='rec none'><b>Flag suppressed — not bet.</b><ul class='reasons'><li>game already started — logging now would contaminate the track record with hindsight</li></ul></div>
+      
+      <div class='rechead'>HR Board (top 8 · take the price only at or above the model's fair odds)</div><div class='hrboard'><table><tr><th>Batter</th><th>E[HR]</th><th>P(1+)</th><th>P(2+)</th><th>Take</th></tr><tr><td>Munetaka Murakami <span class='teamtag'>CWS · #2</span></td><td class='num'>0.26</td><td class='num'>23.4%</td><td class='num'>2.4%</td><td class='num'><b>+330 or better</b></td></tr><tr><td>Kazuma Okamoto <span class='teamtag'>TOR · #4</span></td><td class='num'>0.22</td><td class='num'>19.9%</td><td class='num'>1.7%</td><td class='num'><b>+410 or better</b></td></tr><tr><td>Colson Montgomery <span class='teamtag'>CWS · #4</span></td><td class='num'>0.18</td><td class='num'>16.7%</td><td class='num'>1.2%</td><td class='num'><b>+500 or better</b></td></tr><tr><td>Miguel Vargas <span class='teamtag'>CWS · #3</span></td><td class='num'>0.18</td><td class='num'>16.4%</td><td class='num'>1.1%</td><td class='num'><b>+510 or better</b></td></tr><tr><td>Randal Grichuk <span class='teamtag'>CWS · #7</span></td><td class='num'>0.15</td><td class='num'>14.0%</td><td class='num'>0.8%</td><td class='num'><b>+620 or better</b></td></tr><tr><td>Brandon Valenzuela <span class='teamtag'>TOR · #7</span></td><td class='num'>0.14</td><td class='num'>13.5%</td><td class='num'>0.7%</td><td class='num'><b>+640 or better</b></td></tr><tr><td>Nathan Lukes <span class='teamtag'>TOR · #2</span></td><td class='num'>0.13</td><td class='num'>12.6%</td><td class='num'>0.7%</td><td class='num'><b>+700 or better</b></td></tr><tr><td>Andrew Benintendi <span class='teamtag'>CWS · #5</span></td><td class='num'>0.13</td><td class='num'>12.5%</td><td class='num'>0.6%</td><td class='num'><b>+700 or better</b></td></tr></table></div>
+      <div class='dq'>Weather: live <span class='wchip neu'>weather -1.8% run scoring (-0.16 runs) · neutral</span> &nbsp;·&nbsp; Lineups: confirmed</div>
+    </div>
+    <div class='card' id='g1'>
+      <div class='head'>
+        <div>
+          <div class='abbrs'>LAD @ NYY</div>
+          <div class='fullnames'>Los Angeles Dodgers at New York Yankees</div>
+        </div>
+        <span class='meta'>7:20 PM ET · Yankee Stadium</span>
+      </div>
+      
+      <div class='markets'>
+        <div class='mkt'><div class='t'>Moneyline</div>
+          <div class='r'><span>LAD</span><b>-115</b></div>
+          <div class='r'><span>NYY</span><b>+104</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Run Line</div>
+          <div class='r'><span>LAD -1.5</span><b>+158</b></div>
+          <div class='r'><span>NYY +1.5</span><b>-163</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Total: 9</div>
+          <div class='r'><span>Over</span><b>+100</b></div>
+          <div class='r'><span>Under</span><b>-113</b></div>
+          <div class='r'><span>Proj HRs</span><b>2.6</b></div>
+        </div>
+      </div>
+      <div class='probbar'><div style='width:53.3%'></div></div>
+      <div class='problabel'><span>LAD 46.7%</span><span>NYY 53.3%</span></div>
+      <div class='rechead'>Moneyline Recommendation</div>
+      <div class='rec none'><b>Flag suppressed — not bet.</b><ul class='reasons'><li>odds file 25.1h old - a bet at a price that may no longer exist is not a bet; run fetch_odds.py and re-run</li></ul></div>
+      
+      <div class='rechead'>HR Board (top 8 · take the price only at or above the model's fair odds)</div><div class='hrboard'><table><tr><th>Batter</th><th>E[HR]</th><th>P(1+)</th><th>P(2+)</th><th>Take</th></tr><tr><td>Shohei Ohtani <span class='teamtag'>LAD · #1</span></td><td class='num'>0.33</td><td class='num'>29.1%</td><td class='num'>3.9%</td><td class='num'><b>+250 or better</b></td></tr><tr><td>Ben Rice <span class='teamtag'>NYY · #2</span></td><td class='num'>0.23</td><td class='num'>21.4%</td><td class='num'>2.0%</td><td class='num'><b>+370 or better</b></td></tr><tr><td>Max Muncy <span class='teamtag'>LAD · #8</span></td><td class='num'>0.22</td><td class='num'>20.2%</td><td class='num'>1.7%</td><td class='num'><b>+400 or better</b></td></tr><tr><td>Andy Pages <span class='teamtag'>LAD · #2</span></td><td class='num'>0.20</td><td class='num'>18.4%</td><td class='num'>1.5%</td><td class='num'><b>+450 or better</b></td></tr><tr><td>Freddie Freeman <span class='teamtag'>LAD · #3</span></td><td class='num'>0.17</td><td class='num'>16.2%</td><td class='num'>1.1%</td><td class='num'><b>+520 or better</b></td></tr><tr><td>Miguel Rojas <span class='teamtag'>LAD · #6</span></td><td class='num'>0.17</td><td class='num'>15.9%</td><td class='num'>1.0%</td><td class='num'><b>+540 or better</b></td></tr><tr><td>Mookie Betts <span class='teamtag'>LAD · #4</span></td><td class='num'>0.16</td><td class='num'>14.9%</td><td class='num'>0.9%</td><td class='num'><b>+580 or better</b></td></tr><tr><td>Trent Grisham <span class='teamtag'>NYY · #1</span></td><td class='num'>0.15</td><td class='num'>14.1%</td><td class='num'>0.9%</td><td class='num'><b>+610 or better</b></td></tr></table></div>
+      <div class='dq'>Weather: live <span class='wchip pos'>weather +3.2% run scoring (+0.28 runs) · favors hitters</span> &nbsp;·&nbsp; Lineups: confirmed</div>
+    </div>
+    <div class='card' id='g2'>
+      <div class='head'>
+        <div>
+          <div class='abbrs'>TB @ BOS</div>
+          <div class='fullnames'>Tampa Bay Rays at Boston Red Sox</div>
+        </div>
+        <span class='meta'>1:35 PM ET · Fenway Park</span>
+      </div>
+      
+      <div class='markets'>
+        <div class='mkt'><div class='t'>Moneyline</div>
+          <div class='r'><span>TB</span><b>+110</b></div>
+          <div class='r'><span>BOS</span><b>-113</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Run Line</div>
+          <div class='r'><span>TB +1.5</span><b>-185</b></div>
+          <div class='r'><span>BOS -1.5</span><b>+172</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Total: 9.5</div>
+          <div class='r'><span>Over</span><b>-113</b></div>
+          <div class='r'><span>Under</span><b>-102</b></div>
+          
+        </div>
+      </div>
+      <div class='probbar'><div style='width:53.1%'></div></div>
+      <div class='problabel'><span>TB 46.9%</span><span>BOS 53.1%</span></div>
+      <div class='rechead'>Moneyline Recommendation</div>
+      <div class='rec none'>Moneyline recommendation: <b>No clear value</b> (largest gap +0.4%)</div>
+      
+      
+      <div class='dq'>Weather: live <span class='wchip neu'>weather +0.9% run scoring (+0.08 runs) · neutral</span> &nbsp;·&nbsp; Lineups: confirmed</div>
+    </div>
+    <div class='card' id='g3'>
+      <div class='head'>
+        <div>
+          <div class='abbrs'>NYM @ PHI</div>
+          <div class='fullnames'>New York Mets at Philadelphia Phillies</div>
+        </div>
+        <span class='meta'>1:35 PM ET · Citizens Bank Park</span>
+      </div>
+      
+      <div class='markets'>
+        <div class='mkt'><div class='t'>Moneyline</div>
+          <div class='r'><span>NYM</span><b>-124</b></div>
+          <div class='r'><span>PHI</span><b>+114</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Run Line</div>
+          <div class='r'><span>NYM -1.5</span><b>+130</b></div>
+          <div class='r'><span>PHI +1.5</span><b>-143</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Total: 8.5</div>
+          <div class='r'><span>Over</span><b>-122</b></div>
+          <div class='r'><span>Under</span><b>+112</b></div>
+          <div class='r'><span>Proj HRs</span><b>2.6</b></div>
+        </div>
+      </div>
+      <div class='probbar'><div style='width:49.2%'></div></div>
+      <div class='problabel'><span>NYM 50.8%</span><span>PHI 49.2%</span></div>
+      <div class='rechead'>Moneyline Recommendation</div>
+      <div class='rec none'><b>Flag suppressed — not bet.</b><ul class='reasons'><li>game already started — logging now would contaminate the track record with hindsight</li></ul></div>
+      
+      <div class='rechead'>HR Board (top 8 · take the price only at or above the model's fair odds)</div><div class='hrboard'><table><tr><th>Batter</th><th>E[HR]</th><th>P(1+)</th><th>P(2+)</th><th>Take</th></tr><tr><td>Kyle Schwarber <span class='teamtag'>PHI · #2</span></td><td class='num'>0.30</td><td class='num'>26.7%</td><td class='num'>3.2%</td><td class='num'><b>+280 or better</b></td></tr><tr><td>Juan Soto <span class='teamtag'>NYM · #2</span></td><td class='num'>0.29</td><td class='num'>25.6%</td><td class='num'>2.9%</td><td class='num'><b>+300 or better</b></td></tr><tr><td>Bryce Harper <span class='teamtag'>PHI · #3</span></td><td class='num'>0.23</td><td class='num'>20.6%</td><td class='num'>1.8%</td><td class='num'><b>+390 or better</b></td></tr><tr><td>Jared Young <span class='teamtag'>NYM · #6</span></td><td class='num'>0.17</td><td class='num'>16.2%</td><td class='num'>1.1%</td><td class='num'><b>+520 or better</b></td></tr><tr><td>Marcus Semien <span class='teamtag'>NYM · #7</span></td><td class='num'>0.16</td><td class='num'>15.3%</td><td class='num'>1.0%</td><td class='num'><b>+560 or better</b></td></tr><tr><td>Brandon Marsh <span class='teamtag'>PHI · #4</span></td><td class='num'>0.16</td><td class='num'>14.9%</td><td class='num'>0.9%</td><td class='num'><b>+580 or better</b></td></tr><tr><td>Francisco Lindor <span class='teamtag'>NYM · #4</span></td><td class='num'>0.16</td><td class='num'>14.6%</td><td class='num'>0.9%</td><td class='num'><b>+590 or better</b></td></tr><tr><td>Trea Turner <span class='teamtag'>PHI · #1</span></td><td class='num'>0.15</td><td class='num'>13.7%</td><td class='num'>0.8%</td><td class='num'><b>+630 or better</b></td></tr></table></div>
+      <div class='dq'>Weather: live <span class='wchip neu'>weather -1.9% run scoring (-0.16 runs) · neutral</span> &nbsp;·&nbsp; Lineups: confirmed</div>
+    </div>
+    <div class='card' id='g4'>
+      <div class='head'>
+        <div>
+          <div class='abbrs'>PIT @ CLE</div>
+          <div class='fullnames'>Pittsburgh Pirates at Cleveland Guardians</div>
+        </div>
+        <span class='meta'>1:40 PM ET · Progressive Field</span>
+      </div>
+      
+      <div class='markets'>
+        <div class='mkt'><div class='t'>Moneyline</div>
+          <div class='r'><span>PIT</span><b>-124</b></div>
+          <div class='r'><span>CLE</span><b>+113</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Run Line</div>
+          <div class='r'><span>PIT -1.5</span><b>+160</b></div>
+          <div class='r'><span>CLE +1.5</span><b>-158</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Total: 8.5</div>
+          <div class='r'><span>Over</span><b>+100</b></div>
+          <div class='r'><span>Under</span><b>-110</b></div>
+          <div class='r'><span>Proj HRs</span><b>1.7</b></div>
+        </div>
+      </div>
+      <div class='probbar'><div style='width:55.8%'></div></div>
+      <div class='problabel'><span>PIT 44.2%</span><span>CLE 55.8%</span></div>
+      <div class='rechead'>Moneyline Recommendation</div>
+      <div class='rec none'><b>Flag suppressed — not bet.</b><ul class='reasons'><li>game already started — logging now would contaminate the track record with hindsight</li></ul></div>
+      
+      <div class='rechead'>HR Board (top 8 · take the price only at or above the model's fair odds)</div><div class='hrboard'><table><tr><th>Batter</th><th>E[HR]</th><th>P(1+)</th><th>P(2+)</th><th>Take</th></tr><tr><td>Esmerlyn Valdez <span class='teamtag'>PIT · #4</span></td><td class='num'>0.25</td><td class='num'>22.7%</td><td class='num'>2.2%</td><td class='num'><b>+340 or better</b></td></tr><tr><td>Chase DeLauter <span class='teamtag'>CLE · #3</span></td><td class='num'>0.15</td><td class='num'>14.5%</td><td class='num'>0.9%</td><td class='num'><b>+590 or better</b></td></tr><tr><td>Bryan Reynolds <span class='teamtag'>PIT · #3</span></td><td class='num'>0.13</td><td class='num'>11.9%</td><td class='num'>0.6%</td><td class='num'><b>+740 or better</b></td></tr><tr><td>Kyle Manzardo <span class='teamtag'>CLE · #5</span></td><td class='num'>0.12</td><td class='num'>11.7%</td><td class='num'>0.6%</td><td class='num'><b>+760 or better</b></td></tr><tr><td>Travis Bazzana <span class='teamtag'>CLE · #2</span></td><td class='num'>0.12</td><td class='num'>11.4%</td><td class='num'>0.5%</td><td class='num'><b>+780 or better</b></td></tr><tr><td>Henry Davis <span class='teamtag'>PIT · #8</span></td><td class='num'>0.12</td><td class='num'>11.4%</td><td class='num'>0.5%</td><td class='num'><b>+780 or better</b></td></tr><tr><td>Ryan O'Hearn <span class='teamtag'>PIT · #5</span></td><td class='num'>0.11</td><td class='num'>10.8%</td><td class='num'>0.5%</td><td class='num'><b>+830 or better</b></td></tr><tr><td>Brayan Rocchio <span class='teamtag'>CLE · #4</span></td><td class='num'>0.08</td><td class='num'>8.1%</td><td class='num'>0.3%</td><td class='num'><b>+1140 or better</b></td></tr></table></div>
+      <div class='dq'>Weather: live <span class='wchip neg'>weather -2.4% run scoring (-0.21 runs) · favors pitchers</span> &nbsp;·&nbsp; Lineups: confirmed</div>
+    </div>
+    <div class='card' id='g5'>
+      <div class='head'>
+        <div>
+          <div class='abbrs'>BAL @ HOU</div>
+          <div class='fullnames'>Baltimore Orioles at Houston Astros</div>
+        </div>
+        <span class='meta'>2:10 PM ET · Daikin Park</span>
+      </div>
+      
+      <div class='markets'>
+        <div class='mkt'><div class='t'>Moneyline</div>
+          <div class='r'><span>BAL</span><b>+105</b></div>
+          <div class='r'><span>HOU</span><b>-112</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Run Line</div>
+          <div class='r'><span>BAL -1.5</span><b>+164</b></div>
+          <div class='r'><span>HOU +1.5</span><b>-120</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Total: 6.5</div>
+          <div class='r'><span>Over</span><b>-110</b></div>
+          <div class='r'><span>Under</span><b>-102</b></div>
+          <div class='r'><span>Proj HRs</span><b>2.5</b></div>
+        </div>
+      </div>
+      <div class='probbar'><div style='width:63.4%'></div></div>
+      <div class='problabel'><span>BAL 36.6%</span><span>HOU 63.4%</span></div>
+      <div class='rechead'>Moneyline Recommendation</div>
+      <div class='rec none'><b>Flag suppressed — not bet.</b><ul class='reasons'><li>game already started — logging now would contaminate the track record with hindsight</li></ul></div>
+      
+      <div class='rechead'>HR Board (top 8 · take the price only at or above the model's fair odds)</div><div class='hrboard'><table><tr><th>Batter</th><th>E[HR]</th><th>P(1+)</th><th>P(2+)</th><th>Take</th></tr><tr><td>Yordan Alvarez <span class='teamtag'>HOU · #2</span></td><td class='num'>0.29</td><td class='num'>26.1%</td><td class='num'>3.1%</td><td class='num'><b>+290 or better</b></td></tr><tr><td>Pete Alonso <span class='teamtag'>BAL · #4</span></td><td class='num'>0.25</td><td class='num'>22.8%</td><td class='num'>2.3%</td><td class='num'><b>+340 or better</b></td></tr><tr><td>Samuel Basallo <span class='teamtag'>BAL · #5</span></td><td class='num'>0.19</td><td class='num'>17.9%</td><td class='num'>1.4%</td><td class='num'><b>+460 or better</b></td></tr><tr><td>Isaac Paredes <span class='teamtag'>HOU · #3</span></td><td class='num'>0.18</td><td class='num'>16.7%</td><td class='num'>1.2%</td><td class='num'><b>+500 or better</b></td></tr><tr><td>Yainer Diaz <span class='teamtag'>HOU · #5</span></td><td class='num'>0.16</td><td class='num'>15.0%</td><td class='num'>0.9%</td><td class='num'><b>+570 or better</b></td></tr><tr><td>Jose Altuve <span class='teamtag'>HOU · #1</span></td><td class='num'>0.15</td><td class='num'>14.5%</td><td class='num'>0.9%</td><td class='num'><b>+590 or better</b></td></tr><tr><td>Gunnar Henderson <span class='teamtag'>BAL · #1</span></td><td class='num'>0.15</td><td class='num'>13.8%</td><td class='num'>0.8%</td><td class='num'><b>+630 or better</b></td></tr><tr><td>Lucas Spence <span class='teamtag'>HOU · #6</span></td><td class='num'>0.13</td><td class='num'>12.6%</td><td class='num'>0.6%</td><td class='num'><b>+700 or better</b></td></tr></table></div>
+      <div class='dq'>Weather: live <span class='wchip neu'>weather -0.5% run scoring (-0.04 runs) · neutral</span> &nbsp;·&nbsp; Lineups: confirmed</div>
+    </div>
+    <div class='card' id='g6'>
+      <div class='head'>
+        <div>
+          <div class='abbrs'>SD @ KC</div>
+          <div class='fullnames'>San Diego Padres at Kansas City Royals</div>
+        </div>
+        <span class='meta'>2:10 PM ET · Kauffman Stadium</span>
+      </div>
+      
+      <div class='markets'>
+        <div class='mkt'><div class='t'>Moneyline</div>
+          <div class='r'><span>SD</span><b>+114</b></div>
+          <div class='r'><span>KC</span><b>-118</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Run Line</div>
+          <div class='r'><span>SD +1.5</span><b>+110</b></div>
+          <div class='r'><span>KC -1.5</span><b>+158</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Total: 10</div>
+          <div class='r'><span>Over</span><b>-113</b></div>
+          <div class='r'><span>Under</span><b>-102</b></div>
+          
+        </div>
+      </div>
+      <div class='probbar'><div style='width:55.8%'></div></div>
+      <div class='problabel'><span>SD 44.2%</span><span>KC 55.8%</span></div>
+      <div class='rechead'>Moneyline Recommendation</div>
+      <div class='rec none'>Moneyline recommendation: <b>No clear value</b> (largest gap +2.1%)</div>
+      
+      
+      <div class='dq'>Weather: live <span class='wchip pos'>weather +7.3% run scoring (+0.65 runs) · favors hitters</span> &nbsp;·&nbsp; Lineups: confirmed</div>
+    </div>
+    <div class='card' id='g7'>
+      <div class='head'>
+        <div>
+          <div class='abbrs'>MIA @ MIL</div>
+          <div class='fullnames'>Miami Marlins at Milwaukee Brewers</div>
+        </div>
+        <span class='meta'>2:10 PM ET · American Family Field</span>
+      </div>
+      
+      <div class='markets'>
+        <div class='mkt'><div class='t'>Moneyline</div>
+          <div class='r'><span>MIA</span><b>+115</b></div>
+          <div class='r'><span>MIL</span><b>-126</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Run Line</div>
+          <div class='r'><span>MIA -1.5</span><b>+114</b></div>
+          <div class='r'><span>MIL +1.5</span><b>-115</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Total: 8</div>
+          <div class='r'><span>Over</span><b>-106</b></div>
+          <div class='r'><span>Under</span><b>+101</b></div>
+          <div class='r'><span>Proj HRs</span><b>2.4</b></div>
+        </div>
+      </div>
+      <div class='probbar'><div style='width:46.3%'></div></div>
+      <div class='problabel'><span>MIA 53.7%</span><span>MIL 46.3%</span></div>
+      <div class='rechead'>Moneyline Recommendation</div>
+      <div class='rec none'><b>Flag suppressed — not bet.</b><ul class='reasons'><li>game already started — logging now would contaminate the track record with hindsight</li></ul></div>
+      
+      <div class='rechead'>HR Board (top 8 · take the price only at or above the model's fair odds)</div><div class='hrboard'><table><tr><th>Batter</th><th>E[HR]</th><th>P(1+)</th><th>P(2+)</th><th>Take</th></tr><tr><td>Jackson Chourio <span class='teamtag'>MIL · #2</span></td><td class='num'>0.21</td><td class='num'>19.3%</td><td class='num'>1.6%</td><td class='num'><b>+420 or better</b></td></tr><tr><td>Heriberto Hernández <span class='teamtag'>MIA · #2</span></td><td class='num'>0.20</td><td class='num'>18.6%</td><td class='num'>1.5%</td><td class='num'><b>+440 or better</b></td></tr><tr><td>Jake Bauers <span class='teamtag'>MIL · #5</span></td><td class='num'>0.19</td><td class='num'>17.9%</td><td class='num'>1.4%</td><td class='num'><b>+460 or better</b></td></tr><tr><td>Kyle Stowers <span class='teamtag'>MIA · #3</span></td><td class='num'>0.18</td><td class='num'>16.3%</td><td class='num'>1.1%</td><td class='num'><b>+520 or better</b></td></tr><tr><td>Gary Sánchez <span class='teamtag'>MIL · #7</span></td><td class='num'>0.17</td><td class='num'>15.6%</td><td class='num'>1.0%</td><td class='num'><b>+550 or better</b></td></tr><tr><td>Brice Turang <span class='teamtag'>MIL · #3</span></td><td class='num'>0.15</td><td class='num'>14.0%</td><td class='num'>0.8%</td><td class='num'><b>+620 or better</b></td></tr><tr><td>Griffin Conine <span class='teamtag'>MIA · #7</span></td><td class='num'>0.15</td><td class='num'>13.7%</td><td class='num'>0.8%</td><td class='num'><b>+630 or better</b></td></tr><tr><td>Esteury Ruiz <span class='teamtag'>MIA · #8</span></td><td class='num'>0.14</td><td class='num'>13.3%</td><td class='num'>0.7%</td><td class='num'><b>+660 or better</b></td></tr></table></div>
+      <div class='dq'>Weather: live <span class='wchip neu'>weather -0.6% run scoring (-0.05 runs) · neutral</span> &nbsp;·&nbsp; Lineups: confirmed</div>
+    </div>
+    <div class='card' id='g8'>
+      <div class='head'>
+        <div>
+          <div class='abbrs'>MIN @ CHC</div>
+          <div class='fullnames'>Minnesota Twins at Chicago Cubs</div>
+        </div>
+        <span class='meta'>2:20 PM ET · Wrigley Field</span>
+      </div>
+      
+      <div class='markets'>
+        <div class='mkt'><div class='t'>Moneyline</div>
+          <div class='r'><span>MIN</span><b>+149</b></div>
+          <div class='r'><span>CHC</span><b>-162</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Run Line</div>
+          <div class='r'><span>MIN +1.5</span><b>-145</b></div>
+          <div class='r'><span>CHC -1.5</span><b>+142</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Total: 7.5</div>
+          <div class='r'><span>Over</span><b>-119</b></div>
+          <div class='r'><span>Under</span><b>-103</b></div>
+          <div class='r'><span>Proj HRs</span><b>2.7</b></div>
+        </div>
+      </div>
+      <div class='probbar'><div style='width:64.4%'></div></div>
+      <div class='problabel'><span>MIN 35.6%</span><span>CHC 64.4%</span></div>
+      <div class='rechead'>Moneyline Recommendation</div>
+      <div class='rec none'><b>Flag suppressed — not bet.</b><ul class='reasons'><li>game already started — logging now would contaminate the track record with hindsight</li></ul></div>
+      
+      <div class='rechead'>HR Board (top 8 · take the price only at or above the model's fair odds)</div><div class='hrboard'><table><tr><th>Batter</th><th>E[HR]</th><th>P(1+)</th><th>P(2+)</th><th>Take</th></tr><tr><td>Pete Crow-Armstrong <span class='teamtag'>CHC · #1</span></td><td class='num'>0.29</td><td class='num'>25.8%</td><td class='num'>3.0%</td><td class='num'><b>+290 or better</b></td></tr><tr><td>Ian Happ <span class='teamtag'>CHC · #5</span></td><td class='num'>0.24</td><td class='num'>21.8%</td><td class='num'>2.1%</td><td class='num'><b>+360 or better</b></td></tr><tr><td>Michael Busch <span class='teamtag'>CHC · #3</span></td><td class='num'>0.23</td><td class='num'>21.1%</td><td class='num'>1.9%</td><td class='num'><b>+380 or better</b></td></tr><tr><td>Seiya Suzuki <span class='teamtag'>CHC · #2</span></td><td class='num'>0.20</td><td class='num'>18.7%</td><td class='num'>1.5%</td><td class='num'><b>+440 or better</b></td></tr><tr><td>Royce Lewis <span class='teamtag'>MIN · #4</span></td><td class='num'>0.18</td><td class='num'>16.9%</td><td class='num'>1.2%</td><td class='num'><b>+500 or better</b></td></tr><tr><td>Josh Bell <span class='teamtag'>MIN · #3</span></td><td class='num'>0.17</td><td class='num'>16.2%</td><td class='num'>1.1%</td><td class='num'><b>+520 or better</b></td></tr><tr><td>Brooks Lee <span class='teamtag'>MIN · #8</span></td><td class='num'>0.16</td><td class='num'>15.4%</td><td class='num'>1.0%</td><td class='num'><b>+550 or better</b></td></tr><tr><td>Victor Caratini <span class='teamtag'>MIN · #5</span></td><td class='num'>0.16</td><td class='num'>15.3%</td><td class='num'>1.0%</td><td class='num'><b>+560 or better</b></td></tr></table></div>
+      <div class='dq'>Weather: live <span class='wchip neu'>weather -0.5% run scoring (-0.04 runs) · neutral</span> &nbsp;·&nbsp; Lineups: confirmed</div>
+    </div>
+    <div class='card' id='g9'>
+      <div class='head'>
+        <div>
+          <div class='abbrs'>CIN @ COL</div>
+          <div class='fullnames'>Cincinnati Reds at Colorado Rockies</div>
+        </div>
+        <span class='meta'>3:10 PM ET · Coors Field</span>
+      </div>
+      
+      <div class='markets'>
+        <div class='mkt'><div class='t'>Moneyline</div>
+          <div class='r'><span>CIN</span><b>-136</b></div>
+          <div class='r'><span>COL</span><b>+123</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Run Line</div>
+          <div class='r'><span>CIN -1.5</span><b>+109</b></div>
+          <div class='r'><span>COL +1.5</span><b>-126</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Total: 11</div>
+          <div class='r'><span>Over</span><b>-107</b></div>
+          <div class='r'><span>Under</span><b>-107</b></div>
+          <div class='r'><span>Proj HRs</span><b>2.9</b></div>
+        </div>
+      </div>
+      <div class='probbar'><div style='width:56.0%'></div></div>
+      <div class='problabel'><span>CIN 44.0%</span><span>COL 56.0%</span></div>
+      <div class='rechead'>Moneyline Recommendation</div>
+      <div class='rec none'><b>Flag suppressed — not bet.</b><ul class='reasons'><li>game already started — logging now would contaminate the track record with hindsight</li></ul></div>
+      
+      <div class='rechead'>HR Board (top 8 · take the price only at or above the model's fair odds)</div><div class='hrboard'><table><tr><th>Batter</th><th>E[HR]</th><th>P(1+)</th><th>P(2+)</th><th>Take</th></tr><tr><td>Mickey Moniak <span class='teamtag'>COL · #2</span></td><td class='num'>0.34</td><td class='num'>29.8%</td><td class='num'>4.1%</td><td class='num'><b>+240 or better</b></td></tr><tr><td>Hunter Goodman <span class='teamtag'>COL · #3</span></td><td class='num'>0.31</td><td class='num'>27.5%</td><td class='num'>3.4%</td><td class='num'><b>+270 or better</b></td></tr><tr><td>JJ Bleday <span class='teamtag'>CIN · #3</span></td><td class='num'>0.24</td><td class='num'>22.0%</td><td class='num'>2.1%</td><td class='num'><b>+360 or better</b></td></tr><tr><td>Eugenio Suárez <span class='teamtag'>CIN · #6</span></td><td class='num'>0.23</td><td class='num'>20.8%</td><td class='num'>1.9%</td><td class='num'><b>+380 or better</b></td></tr><tr><td>Sal Stewart <span class='teamtag'>CIN · #2</span></td><td class='num'>0.23</td><td class='num'>20.6%</td><td class='num'>1.9%</td><td class='num'><b>+390 or better</b></td></tr><tr><td>TJ Rumfield <span class='teamtag'>COL · #4</span></td><td class='num'>0.21</td><td class='num'>19.1%</td><td class='num'>1.6%</td><td class='num'><b>+430 or better</b></td></tr><tr><td>Jake McCarthy <span class='teamtag'>COL · #1</span></td><td class='num'>0.18</td><td class='num'>17.0%</td><td class='num'>1.2%</td><td class='num'><b>+490 or better</b></td></tr><tr><td>Nathaniel Lowe <span class='teamtag'>CIN · #5</span></td><td class='num'>0.17</td><td class='num'>15.5%</td><td class='num'>1.0%</td><td class='num'><b>+550 or better</b></td></tr></table></div>
+      <div class='dq'>Weather: live <span class='wchip pos'>weather +9.5% run scoring (+0.84 runs) · favors hitters</span> &nbsp;·&nbsp; Lineups: confirmed</div>
+    </div>
+    <div class='card' id='g10'>
+      <div class='head'>
+        <div>
+          <div class='abbrs'>WSH @ ATH</div>
+          <div class='fullnames'>Washington Nationals at Athletics</div>
+        </div>
+        <span class='meta'>4:05 PM ET · Sutter Health Park</span>
+      </div>
+      
+      <div class='markets'>
+        <div class='mkt'><div class='t'>Moneyline</div>
+          <div class='r'><span>WSH</span><b>-129</b></div>
+          <div class='r'><span>ATH</span><b>+117</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Run Line</div>
+          <div class='r'><span>WSH -1.5</span><b>+150</b></div>
+          <div class='r'><span>ATH +1.5</span><b>-136</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Total: 11.5</div>
+          <div class='r'><span>Over</span><b>-102</b></div>
+          <div class='r'><span>Under</span><b>-113</b></div>
+          <div class='r'><span>Proj HRs</span><b>3.4</b></div>
+        </div>
+      </div>
+      <div class='probbar'><div style='width:49.5%'></div></div>
+      <div class='problabel'><span>WSH 50.5%</span><span>ATH 49.5%</span></div>
+      <div class='rechead'>Moneyline Recommendation</div>
+      <div class='rec none'><b>Flag suppressed — not bet.</b><ul class='reasons'><li>game already started — logging now would contaminate the track record with hindsight</li></ul></div>
+      
+      <div class='rechead'>HR Board (top 8 · take the price only at or above the model's fair odds)</div><div class='hrboard'><table><tr><th>Batter</th><th>E[HR]</th><th>P(1+)</th><th>P(2+)</th><th>Take</th></tr><tr><td>Shea Langeliers <span class='teamtag'>ATH · #3</span></td><td class='num'>0.38</td><td class='num'>32.5%</td><td class='num'>4.9%</td><td class='num'><b>+210 or better</b></td></tr><tr><td>Colby Thomas <span class='teamtag'>ATH · #6</span></td><td class='num'>0.31</td><td class='num'>27.4%</td><td class='num'>3.3%</td><td class='num'><b>+270 or better</b></td></tr><tr><td>James Wood <span class='teamtag'>WSH · #1</span></td><td class='num'>0.30</td><td class='num'>26.8%</td><td class='num'>3.2%</td><td class='num'><b>+280 or better</b></td></tr><tr><td>Curtis Mead <span class='teamtag'>WSH · #2</span></td><td class='num'>0.28</td><td class='num'>25.2%</td><td class='num'>2.8%</td><td class='num'><b>+300 or better</b></td></tr><tr><td>Tyler Soderstrom <span class='teamtag'>ATH · #2</span></td><td class='num'>0.26</td><td class='num'>23.7%</td><td class='num'>2.5%</td><td class='num'><b>+330 or better</b></td></tr><tr><td>Jonah Heim <span class='teamtag'>ATH · #4</span></td><td class='num'>0.23</td><td class='num'>21.1%</td><td class='num'>1.9%</td><td class='num'><b>+380 or better</b></td></tr><tr><td>Dylan Crews <span class='teamtag'>WSH · #5</span></td><td class='num'>0.21</td><td class='num'>19.2%</td><td class='num'>1.6%</td><td class='num'><b>+430 or better</b></td></tr><tr><td>Jacob Wilson <span class='teamtag'>ATH · #1</span></td><td class='num'>0.17</td><td class='num'>16.1%</td><td class='num'>1.1%</td><td class='num'><b>+530 or better</b></td></tr></table></div>
+      <div class='dq'>Weather: live <span class='wchip pos'>weather +6.4% run scoring (+0.57 runs) · favors hitters</span> &nbsp;·&nbsp; Lineups: confirmed</div>
+    </div>
+    <div class='card' id='g11'>
+      <div class='head'>
+        <div>
+          <div class='abbrs'>DET @ LAA</div>
+          <div class='fullnames'>Detroit Tigers at Los Angeles Angels</div>
+        </div>
+        <span class='meta'>4:07 PM ET · Angel Stadium</span>
+      </div>
+      
+      <div class='markets'>
+        <div class='mkt'><div class='t'>Moneyline</div>
+          <div class='r'><span>DET</span><b>-142</b></div>
+          <div class='r'><span>LAA</span><b>+133</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Run Line</div>
+          <div class='r'><span>DET -1.5</span><b>+114</b></div>
+          <div class='r'><span>LAA +1.5</span><b>+103</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Total: 8</div>
+          <div class='r'><span>Over</span><b>-110</b></div>
+          <div class='r'><span>Under</span><b>-102</b></div>
+          <div class='r'><span>Proj HRs</span><b>2.9</b></div>
+        </div>
+      </div>
+      <div class='probbar'><div style='width:49.9%'></div></div>
+      <div class='problabel'><span>DET 50.1%</span><span>LAA 49.9%</span></div>
+      <div class='rechead'>Moneyline Recommendation</div>
+      <div class='rec none'><b>Flag suppressed — not bet.</b><ul class='reasons'><li>game already started — logging now would contaminate the track record with hindsight</li></ul></div>
+      
+      <div class='rechead'>HR Board (top 8 · take the price only at or above the model's fair odds)</div><div class='hrboard'><table><tr><th>Batter</th><th>E[HR]</th><th>P(1+)</th><th>P(2+)</th><th>Take</th></tr><tr><td>Kerry Carpenter <span class='teamtag'>DET · #6</span></td><td class='num'>0.30</td><td class='num'>26.6%</td><td class='num'>3.1%</td><td class='num'><b>+280 or better</b></td></tr><tr><td>Dillon Dingler <span class='teamtag'>DET · #2</span></td><td class='num'>0.27</td><td class='num'>24.3%</td><td class='num'>2.6%</td><td class='num'><b>+320 or better</b></td></tr><tr><td>Spencer Torkelson <span class='teamtag'>DET · #5</span></td><td class='num'>0.26</td><td class='num'>23.2%</td><td class='num'>2.3%</td><td class='num'><b>+340 or better</b></td></tr><tr><td>Mike Trout <span class='teamtag'>LAA · #2</span></td><td class='num'>0.23</td><td class='num'>20.6%</td><td class='num'>1.9%</td><td class='num'><b>+390 or better</b></td></tr><tr><td>Riley Greene <span class='teamtag'>DET · #4</span></td><td class='num'>0.21</td><td class='num'>19.4%</td><td class='num'>1.6%</td><td class='num'><b>+420 or better</b></td></tr><tr><td>Zach Neto <span class='teamtag'>LAA · #1</span></td><td class='num'>0.21</td><td class='num'>19.3%</td><td class='num'>1.6%</td><td class='num'><b>+420 or better</b></td></tr><tr><td>Jorge Soler <span class='teamtag'>LAA · #4</span></td><td class='num'>0.18</td><td class='num'>16.4%</td><td class='num'>1.1%</td><td class='num'><b>+520 or better</b></td></tr><tr><td>Colt Keith <span class='teamtag'>DET · #3</span></td><td class='num'>0.17</td><td class='num'>15.6%</td><td class='num'>1.0%</td><td class='num'><b>+540 or better</b></td></tr></table></div>
+      <div class='dq'>Weather: live <span class='wchip pos'>weather +7.5% run scoring (+0.66 runs) · favors hitters</span> &nbsp;·&nbsp; Lineups: confirmed</div>
+    </div>
+    <div class='card' id='g12'>
+      <div class='head'>
+        <div>
+          <div class='abbrs'>SF @ SEA</div>
+          <div class='fullnames'>San Francisco Giants at Seattle Mariners</div>
+        </div>
+        <span class='meta'>4:10 PM ET · T-Mobile Park</span>
+      </div>
+      
+      <div class='markets'>
+        <div class='mkt'><div class='t'>Moneyline</div>
+          <div class='r'><span>SF</span><b>+152</b></div>
+          <div class='r'><span>SEA</span><b>-167</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Run Line</div>
+          <div class='r'><span>SF +1.5</span><b>-143</b></div>
+          <div class='r'><span>SEA -1.5</span><b>+148</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Total: 7</div>
+          <div class='r'><span>Over</span><b>-118</b></div>
+          <div class='r'><span>Under</span><b>+110</b></div>
+          <div class='r'><span>Proj HRs</span><b>2.3</b></div>
+        </div>
+      </div>
+      <div class='probbar'><div style='width:48.3%'></div></div>
+      <div class='problabel'><span>SF 51.7%</span><span>SEA 48.3%</span></div>
+      <div class='rechead'>Moneyline Recommendation</div>
+      <div class='rec none'><b>Flag suppressed — not bet.</b><ul class='reasons'><li>game already started — logging now would contaminate the track record with hindsight</li></ul></div>
+      
+      <div class='rechead'>HR Board (top 8 · take the price only at or above the model's fair odds)</div><div class='hrboard'><table><tr><th>Batter</th><th>E[HR]</th><th>P(1+)</th><th>P(2+)</th><th>Take</th></tr><tr><td>Julio Rodríguez <span class='teamtag'>SEA · #2</span></td><td class='num'>0.25</td><td class='num'>22.9%</td><td class='num'>2.3%</td><td class='num'><b>+340 or better</b></td></tr><tr><td>Rafael Devers <span class='teamtag'>SF · #4</span></td><td class='num'>0.22</td><td class='num'>19.8%</td><td class='num'>1.7%</td><td class='num'><b>+410 or better</b></td></tr><tr><td>Casey Schmitt <span class='teamtag'>SF · #3</span></td><td class='num'>0.19</td><td class='num'>17.8%</td><td class='num'>1.4%</td><td class='num'><b>+470 or better</b></td></tr><tr><td>Cal Raleigh <span class='teamtag'>SEA · #5</span></td><td class='num'>0.18</td><td class='num'>16.5%</td><td class='num'>1.1%</td><td class='num'><b>+510 or better</b></td></tr><tr><td>Willy Adames <span class='teamtag'>SF · #7</span></td><td class='num'>0.16</td><td class='num'>14.7%</td><td class='num'>0.9%</td><td class='num'><b>+580 or better</b></td></tr><tr><td>Weston Wilson <span class='teamtag'>SEA · #8</span></td><td class='num'>0.15</td><td class='num'>13.9%</td><td class='num'>0.8%</td><td class='num'><b>+630 or better</b></td></tr><tr><td>Mitch Garver <span class='teamtag'>SEA · #7</span></td><td class='num'>0.14</td><td class='num'>13.5%</td><td class='num'>0.7%</td><td class='num'><b>+650 or better</b></td></tr><tr><td>Bryce Eldridge <span class='teamtag'>SF · #2</span></td><td class='num'>0.13</td><td class='num'>12.2%</td><td class='num'>0.6%</td><td class='num'><b>+730 or better</b></td></tr></table></div>
+      <div class='dq'>Weather: live <span class='wchip neu'>weather -1.4% run scoring (-0.12 runs) · neutral</span> &nbsp;·&nbsp; Lineups: confirmed</div>
+    </div>
+    <div class='card' id='g13'>
+      <div class='head'>
+        <div>
+          <div class='abbrs'>STL @ AZ</div>
+          <div class='fullnames'>St. Louis Cardinals at Arizona Diamondbacks</div>
+        </div>
+        <span class='meta'>4:10 PM ET · Chase Field</span>
+      </div>
+      
+      <div class='markets'>
+        <div class='mkt'><div class='t'>Moneyline</div>
+          <div class='r'><span>STL</span><b>+105</b></div>
+          <div class='r'><span>AZ</span><b>-115</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Run Line</div>
+          <div class='r'><span>STL +3.5</span><b>+114</b></div>
+          <div class='r'><span>AZ -3.5</span><b>-135</b></div>
+        </div>
+        <div class='mkt'><div class='t'>Total: 9</div>
+          <div class='r'><span>Over</span><b>-107</b></div>
+          <div class='r'><span>Under</span><b>-107</b></div>
+          <div class='r'><span>Proj HRs</span><b>1.9</b></div>
+        </div>
+      </div>
+      <div class='probbar'><div style='width:61.3%'></div></div>
+      <div class='problabel'><span>STL 38.7%</span><span>AZ 61.3%</span></div>
+      <div class='rechead'>Moneyline Recommendation</div>
+      <div class='rec none'><b>Flag suppressed — not bet.</b><ul class='reasons'><li>game already started — logging now would contaminate the track record with hindsight</li></ul></div>
+      
+      <div class='rechead'>HR Board (top 8 · take the price only at or above the model's fair odds)</div><div class='hrboard'><table><tr><th>Batter</th><th>E[HR]</th><th>P(1+)</th><th>P(2+)</th><th>Take</th></tr><tr><td>Jordan Walker <span class='teamtag'>STL · #3</span></td><td class='num'>0.21</td><td class='num'>19.2%</td><td class='num'>1.6%</td><td class='num'><b>+420 or better</b></td></tr><tr><td>Iván Herrera <span class='teamtag'>STL · #2</span></td><td class='num'>0.17</td><td class='num'>16.0%</td><td class='num'>1.1%</td><td class='num'><b>+530 or better</b></td></tr><tr><td>Nelson Velázquez <span class='teamtag'>STL · #4</span></td><td class='num'>0.16</td><td class='num'>15.1%</td><td class='num'>1.0%</td><td class='num'><b>+570 or better</b></td></tr><tr><td>Ketel Marte <span class='teamtag'>AZ · #1</span></td><td class='num'>0.13</td><td class='num'>12.1%</td><td class='num'>0.6%</td><td class='num'><b>+730 or better</b></td></tr><tr><td>Max Kepler <span class='teamtag'>AZ · #5</span></td><td class='num'>0.12</td><td class='num'>11.8%</td><td class='num'>0.6%</td><td class='num'><b>+750 or better</b></td></tr><tr><td>Gabriel Moreno <span class='teamtag'>AZ · #4</span></td><td class='num'>0.12</td><td class='num'>11.7%</td><td class='num'>0.6%</td><td class='num'><b>+760 or better</b></td></tr><tr><td>Corbin Carroll <span class='teamtag'>AZ · #3</span></td><td class='num'>0.12</td><td class='num'>11.5%</td><td class='num'>0.5%</td><td class='num'><b>+780 or better</b></td></tr><tr><td>Adrian Del Castillo <span class='teamtag'>AZ · #8</span></td><td class='num'>0.11</td><td class='num'>10.8%</td><td class='num'>0.5%</td><td class='num'><b>+830 or better</b></td></tr></table></div>
+      <div class='dq'>Weather: live <span class='wchip neu'>weather +0.4% run scoring (+0.04 runs) · neutral</span> &nbsp;·&nbsp; Lineups: confirmed</div>
+    </div>
+<div class='card'><b>No odds posted yet</b><ul class='reasons'><li>Los Angeles Dodgers @ New York Yankees — 12:35 PM ET</li><li>Texas Rangers @ Atlanta Braves — 1:35 PM ET</li></ul></div>
+<div class='modelnote'>Model status: over/under and game-HR models are switched off — they
+haven't beaten their accuracy baselines yet, and this site doesn't show numbers its models
+haven't earned. Details on the <a href='method.html' style='color:#8b949e'>method page</a>.</div>
+<div class='footer'>
+Recommendations are simulated paper bets logged to bet_log.csv for model evaluation —
+not wagering advice. Flat 1-unit stakes. "Why" bullets are the logistic regression's
+exact per-feature contributions for this game (value shown is the model's input).
+</div>
+</div></body></html>
