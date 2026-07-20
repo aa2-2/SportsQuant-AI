@@ -77,46 +77,59 @@ def is_flare_burner(row):
         return 1
     return 0
 
-def map_statcast_row_to_db(row):
+def map_and_rename_columns(df):
     """
-    Map a row from Statcast CSV to database columns
+    Rename columns from Statcast CSV to match our database schema and add missing columns.
+    Also compute the elite metrics (is_barrel, solid_contact, burned_contact, flare_burner).
     """
-    # Map column names from CSV to database
-    mapped = {
-        'game_pk': int(row['game_pk']) if not pd.isna(row['game_pk']) else None,
-        'inning': int(row['inning']) if not pd.isna(row['inning']) else None,
-        'half_inning': row['inning_topbot'] if not pd.isna(row['inning_topbot']) else None,
-        'balls': int(row['balls']) if not pd.isna(row['balls']) else None,
-        'strikes': int(row['strikes']) if not pd.isna(row['strikes']) else None,
-        'outs_when_up': int(row['outs_when_up']) if not pd.isna(row['outs_when_up']) else None,
-        'batter_id': int(row['batter']) if not pd.isna(row['batter']) else None,
-        'pitcher_id': int(row['pitcher']) if not pd.isna(row['pitcher']) else None,
-        'pitch_type': str(row['pitch_type']) if not pd.isna(row['pitch_type']) else None,
-        'pitch_number': int(row['pitch_number']) if not pd.isna(row['pitch_number']) else None,
-        'release_speed': float(row['release_speed']) if not pd.isna(row['release_speed']) else None,
-        'release_pos_x': float(row['release_pos_x']) if not pd.isna(row['release_pos_x']) else None,
-        'release_pos_y': float(row['release_pos_y']) if not pd.isna(row['release_pos_y']) else None,
-        'release_pos_z': float(row['release_pos_z']) if not pd.isna(row['release_pos_z']) else None,
-        'release_spin_rate': float(row['release_spin_rate']) if not pd.isna(row['release_spin_rate']) else None,
-        'release_spin_dir': int(row['spin_dir']) if not pd.isna(row['spin_dir']) else None,  # Fixed: was 'release_spin_dir', now 'spin_dir'
-        'launch_speed': float(row['launch_speed']) if not pd.isna(row['launch_speed']) else None,
-        'launch_angle': float(row['launch_angle']) if not pd.isna(row['launch_angle']) else None,
-        'launch_direction': float(row['launch_direction']) if not pd.isna(row['launch_direction']) else None,
-        'bb_type': str(row['bb_type']) if not pd.isna(row['bb_type']) else None,
-        'events': str(row['events']) if not pd.isna(row['events']) else None,
-        'is_barrel': is_barrel(row),
-        'solid_contact': is_solid_contact(row),
-        'burned_contact': is_burned_contact(row),
-        'flare_burner': is_flare_burner(row),
-        'babip': float(row['babip_value']) if not pd.isna(row['babip_value']) else None,
-        'slg': float(row['slg']) if not pd.isna(row['slg']) else None,
-        'woba_value': float(row['woba_value']) if not pd.isna(row['woba_value']) else None,
-        'woba_denom': float(row['woba_denom']) if not pd.isna(row['woba_denom']) else None,
-        'game_date': str(row['game_date']) if not pd.isna(row['game_date']) else None,
-        'inning_topbot': str(row['inning_topbot']) if not pd.isna(row['inning_topbot']) else None
+    # Create a copy to avoid SettingWithCopyWarning
+    df = df.copy()
+
+    # Rename columns to match our expected names
+    rename_mapping = {
+        'game_pk': 'game_pk',
+        'inning': 'inning',
+        'inning_topbot': 'half_inning',  # we'll also keep a copy for inning_topbot column
+        'batter': 'batter_id',
+        'pitcher': 'pitcher_id',
+        'pitch_type': 'pitch_type',
+        'pitch_number': 'pitch_number',
+        'release_speed': 'release_speed',
+        'release_pos_x': 'release_pos_x',
+        'release_pos_y': 'release_pos_y',
+        'release_pos_z': 'release_pos_z',
+        'release_spin_rate': 'release_spin_rate',
+        'spin_dir': 'release_spin_dir',
+        'launch_speed': 'launch_speed',
+        'launch_angle': 'launch_angle',
+        'bb_type': 'bb_type',
+        'events': 'events',
+        'babip_value': 'babip',
+        'estimated_slg_using_speedangle': 'slg',
+        'woba_value': 'woba_value',
+        'woba_denom': 'woba_denom',
+        'game_date': 'game_date'
     }
 
-    return mapped
+    # Rename only the columns that exist
+    df_renamed = df.rename(columns={k: v for k, v in rename_mapping.items() if k in df.columns})
+
+    # Ensure we have the inning_topbot column (duplicate of half_inning for our table)
+    df_renamed['inning_topbot'] = df_renamed['half_inning']
+
+    # Add missing columns that are not in CSV
+    df_renamed['launch_direction'] = None  # Not available in Statcast CSV
+
+    # Ensure half_inning is uppercase for CHECK constraint
+    df_renamed['half_inning'] = df_renamed['half_inning'].str.upper()
+
+    # Compute the elite metrics
+    df_renamed['is_barrel'] = df_renamed.apply(is_barrel, axis=1)
+    df_renamed['solid_contact'] = df_renamed.apply(is_solid_contact, axis=1)
+    df_renamed['burned_contact'] = df_renamed.apply(is_burned_contact, axis=1)
+    df_renamed['flare_burner'] = df_renamed.apply(is_flare_burner, axis=1)
+
+    return df_renamed
 
 def populate_statcast_table():
     """
@@ -134,6 +147,13 @@ def populate_statcast_table():
 
     # Process each Statcast file
     total_rows_inserted = 0
+    total_rows_skipped = 0
+
+    # Define columns that are NOT NULL in the statcast table
+    not_null_columns = [
+        'game_pk', 'inning', 'half_inning', 'balls', 'strikes', 'outs_when_up',
+        'batter_id', 'pitcher_id', 'pitch_type', 'pitch_number', 'release_speed'
+    ]
 
     for statcast_file in STATCAST_FILES:
         if not statcast_file.exists():
@@ -151,37 +171,72 @@ def populate_statcast_table():
                 chunks_processed += 1
                 print(f"  Processing chunk {chunks_processed} ({len(chunk)} rows)...")
 
+                # Replace empty strings with NaN for consistency
+                chunk = chunk.replace(r'^\s*$', pd.NA, regex=True)
+
+                # Rename and map columns
+                try:
+                    renamed_chunk = map_and_rename_columns(chunk)
+                except Exception as e:
+                    print(f"    Error renaming columns: {e}")
+                    continue
+
+                # Identify rows with missing values in NOT NULL columns
+                # Ensure all required columns are present (some may be missing if not in CSV)
+                missing_cols = [col for col in not_null_columns if col not in renamed_chunk.columns]
+                if missing_cols:
+                    print(f"    Warning: Missing columns after rename: {missing_cols}")
+                    # If any required column is missing, we cannot process this chunk reliably
+                    # We'll skip this chunk for safety
+                    total_rows_skipped += len(chunk)
+                    continue
+
+                missing_mask = renamed_chunk[not_null_columns].isna().any(axis=1)
+                valid_chunk = renamed_chunk[~missing_mask].copy()
+                skipped_count = len(chunk) - len(valid_chunk)
+                total_rows_skipped += skipped_count
+                if skipped_count > 0:
+                    print(f"    Skipped {skipped_count} rows due to missing NOT NULL fields")
+
                 # Prepare data for insertion
-                rows_to_insert = []
-                for _, row in chunk.iterrows():
-                    try:
-                        mapped_data = map_statcast_row_to_db(row)
+                if len(valid_chunk) > 0:
+                    # Define the columns we want to insert (based on the statcast table schema)
+                    # We exclude the 'id' column because it is AUTOINCREMENT
+                    insert_columns = [
+                        'game_pk', 'inning', 'half_inning', 'balls', 'strikes', 'outs_when_up',
+                        'batter_id', 'pitcher_id', 'pitch_type', 'pitch_number', 'release_speed',
+                        'release_pos_x', 'release_pos_y', 'release_pos_z', 'release_spin_rate',
+                        'release_spin_dir', 'launch_speed', 'launch_angle', 'launch_direction',
+                        'bb_type', 'events', 'is_barrel', 'solid_contact', 'burned_contact',
+                        'flare_burner', 'babip', 'slg', 'woba_value', 'woba_denom',
+                        'game_date', 'inning_topbot'
+                    ]
 
-                        # Prepare SQL INSERT
-                        columns = ', '.join([f'"{col}"' for col in mapped_data.keys()])
-                        placeholders = ', '.join(['?' for _ in mapped_data])
-                        sql = f"INSERT INTO statcast ({columns}) VALUES ({placeholders})"
+                    # Ensure we only take columns that exist in the valid_chunk (should all exist after mapping)
+                    # But to be safe, we'll intersect with the columns of valid_chunk
+                    cols_to_insert = [col for col in insert_columns if col in valid_chunk.columns]
 
-                        values = list(mapped_data.values())
-                        rows_to_insert.append(values)
+                    # Prepare the SQL statement
+                    placeholders = ', '.join(['?' for _ in cols_to_insert])
+                    sql = f"INSERT INTO statcast ({', '.join(cols_to_insert)}) VALUES ({placeholders})"
 
-                    except Exception as e:
-                        # Skip problematic rows but continue processing
-                        print(f"    Warning: Skipping row due to error: {e}")
-                        continue
+                    # Convert DataFrame rows to list of tuples
+                    # Replace NaN with None for SQL
+                    values_list = []
+                    for _, row in valid_chunk[cols_to_insert].iterrows():
+                        row_values = []
+                        for val in row:
+                            if pd.isna(val):
+                                row_values.append(None)
+                            else:
+                                row_values.append(val)
+                        values_list.append(tuple(row_values))
 
-                # Insert chunk into database
-                if rows_to_insert:
-                    # Get columns from first row
-                    sample_row = map_statcast_row_to_db(chunk.iloc[0]) if len(chunk) > 0 else {}
-                    columns = list(sample_row.keys())
-                    placeholders = ', '.join(['?' for _ in columns])
-                    sql = f"INSERT INTO statcast ({', '.join(columns)}) VALUES ({placeholders})"
-                    cursor.executemany(sql, rows_to_insert)
-
+                    # Insert the chunk
+                    cursor.executemany(sql, values_list)
                     conn.commit()
-                    total_rows_inserted += len(rows_to_insert)
-                    print(f"    Inserted {len(rows_to_insert)} rows (total: {total_rows_inserted})")
+                    total_rows_inserted += len(values_list)
+                    print(f"    Inserted {len(values_list)} rows (total: {total_rows_inserted})")
 
         except Exception as e:
             print(f"Error processing {statcast_file}: {e}")
@@ -200,6 +255,8 @@ def populate_statcast_table():
     cursor.execute("SELECT COUNT(*) FROM statcast WHERE launch_speed IS NOT NULL AND launch_angle IS NOT NULL")
     batted_ball_count = cursor.fetchone()[0]
     print(f"Balls in play with launch data: {batted_ball_count}")
+
+    print(f"\nTotal rows skipped due to missing data: {total_rows_skipped}")
 
     conn.close()
     print("\nStatcast import completed!")

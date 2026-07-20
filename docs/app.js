@@ -22,6 +22,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let gamesData = [];
     let statcastData = {};
     let weatherImpactData = [];
+    let batterLeadersData = {};
+    let batterStatsData = {};
 
     // Initialize
     init();
@@ -30,29 +32,42 @@ document.addEventListener('DOMContentLoaded', function() {
         await loadData();
         updateStats();
         renderGames();
+        renderBatterLeaders(); // Render batter leaders
         setupEventListeners();
     }
 
     async function loadData() {
         try {
             // Fetch all JSON data files
-            const [gamesResp, statsResp, weatherResp] = await Promise.all([
+            const [gamesResp, statsResp, weatherResp, batterLeadersResp, batterStatsResp] = await Promise.all([
                 fetch('/data/recent_games.json'),
                 fetch('/data/statcast_summary.json'),
-                fetch('/data/weather_impact.json')
+                fetch('/data/weather_impact.json'),
+                fetch('/data/batter_leaders.json'),
+                fetch('/data/batter_stats.json')
             ]);
 
             gamesData = await gamesResp.json();
             statcastData = await statsResp.json();
             weatherImpactData = await weatherResp.json();
+            batterLeadersData = await batterLeadersResp.json();
+            batterStatsData = await batterStatsResp.json();
 
-            console.log('Data loaded:', { games: gamesData.length, stats: statcastData, weather: weatherImpactData.length });
+            console.log('Data loaded:', {
+                games: gamesData.length,
+                stats: statcastData,
+                weather: weatherImpactData.length,
+                batterLeaders: batterLeadersData.total_batters,
+                batterStats: batterStatsData
+            });
         } catch (error) {
             console.error('Failed to load data:', error);
             // Fallback to empty arrays/objects
             gamesData = [];
             statcastData = {};
             weatherImpactData = [];
+            batterLeadersData = {};
+            batterStatsData = {};
         }
     }
 
@@ -69,6 +84,26 @@ document.addEventListener('DOMContentLoaded', function() {
             const avgImpact = impacts.reduce((a, b) => a + b, 0) / Math.max(impacts.length, 1);
             hrWeatherImpactEl.textContent = (avgImpact >= 0 ? '+' : '') + avgImpact.toFixed(1) + '%';
             hrWeatherImpactEl.className = 'stat-value' + (avgImpact >= 0 ? ' positive' : ' negative');
+        }
+
+        // Update new stats elements from batter data
+        const totalBattersEl = document.getElementById('totalBatters');
+        const avgBarrelPctEl = document.getElementById('avgBarrelPct');
+        const avgXHREl = document.getElementById('avgXHR');
+        const topBatterXHREl = document.getElementById('topBatterXHR');
+
+        if (totalBattersEl && batterStatsData.total_batters) {
+            totalBattersEl.textContent = batterStatsData.total_batters.toLocaleString();
+        }
+        if (avgBarrelPctEl && batterStatsData.avg_barrel_pct !== undefined) {
+            avgBarrelPctEl.textContent = batterStatsData.avg_barrel_pct.toFixed(2) + '%';
+        }
+        if (avgXHREl && batterStatsData.avg_xhr_pct !== undefined) {
+            avgXHREl.textContent = batterStatsData.avg_xhr_pct.toFixed(2) + '%';
+        }
+        if (topBatterXHREl && batterLeadersData.batters && batterLeadersData.batters.length > 0) {
+            const topBatter = batterLeadersData.batters[0];
+            topBatterXHREl.textContent = topBatter.player_name + ' (' + topBatter.xhr_pct_season.toFixed(1) + '%)';
         }
     }
 
@@ -359,7 +394,52 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Initial load
+    // Render batter leaders
+    function renderBatterLeaders() {
+        const container = document.getElementById('batterLeadersContainer');
+        if (!container) return;
+
+        if (!batterLeadersData || !batterLeadersData.batters || batterLeadersData.batters.length === 0) {
+            container.innerHTML = '<p class="no-data">No batter data available</p>';
+            return;
+        }
+
+        // We'll show the top 5 batters
+        const topBatters = batterLeadersData.batters.slice(0, 5);
+
+        // Create a table or a list of cards
+        let html = `
+            <div class="leaders-table">
+                <div class="leaders-header">
+                    <div class="leader-rank">Rank</div>
+                    <div class="leader-name">Player</div>
+                    <div class="leader-barrel">Barrel %</div>
+                    <div class="leader-xhr">xHR %</div>
+                </div>
+                <div class="leaders-body">
+        `;
+
+        topBatters.forEach((batter, index) => {
+            html += `
+                <div class="leader-row">
+                    <div class="leader-rank">${index + 1}</div>
+                    <div class="leader-name">${batter.player_name}</div>
+                    <div class="leader-barrel">${batter.barrel_pct_season.toFixed(2)}%</div>
+                    <div class="leader-xhr">${batter.xhr_pct_season.toFixed(2)}%</div>
+                </div>
+            `;
+        });
+
+        html += `
+                </div>
+            </div>
+            <p class="last-updated">Last updated: ${batterLeadersData.last_updated}</p>
+        `;
+
+        container.innerHTML = html;
+    }
+
+// Initial load
     if (gamesGrid) {
         // Show loading state initially
         gamesGrid.innerHTML = '<div class="loading">Loading games...</div>';
@@ -480,6 +560,62 @@ style.textContent = `
         font-size: 0.875rem;
         color: #64748B;
         margin: 0.25rem 0;
+    }
+
+    /* Batters Leaders Styles */
+    .leaders-section {
+        margin: 4rem 0;
+    }
+    .leaders-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+    }
+    .leaders-header {
+        display: grid;
+        grid-template-columns: 60px 1fr 150px 150px;
+        padding: 1rem;
+        background-color: #f8fafc;
+        font-weight: 600;
+        border-bottom: 1px solid #e2e8f0;
+        color: #334155;
+    }
+    .leaders-body {
+        display: grid;
+        gap: 0.5rem;
+    }
+    .leader-row {
+        display: grid;
+        grid-template-columns: 60px 1fr 150px 150px;
+        padding: 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        align-items: center;
+    }
+    .leader-row:hover {
+        background-color: #f8fafc;
+    }
+    .leader-row:last-child {
+        border-bottom: none;
+    }
+    .leader-rank {
+        font-weight: 700;
+        color: #3b82f6;
+    }
+    .leader-name {
+        font-weight: 500;
+    }
+    .leader-barrel, .leader-xhr {
+        font-weight: 600;
+        text-align: center;
+    }
+    .last-updated {
+        text-align: center;
+        margin-top: 1.5rem;
+        color: #64748b;
+        font-size: 0.875rem;
     }
 `;
 document.head.appendChild(style);

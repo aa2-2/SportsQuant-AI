@@ -9,10 +9,10 @@ def create_database():
     # Ensure data directory exists
     os.makedirs(os.path.dirname(DATABASE_PATH), exist_ok=True)
 
-    # Remove existing database for clean start (in development)
-    if os.path.exists(DATABASE_PATH):
-        os.remove(DATABASE_PATH)
-        print(f"Removed existing database: {DATABASE_PATH}")
+    # For use with existing database, comment out the removal above
+    # if os.path.exists(DATABASE_PATH):
+    #     os.remove(DATABASE_PATH)
+    #     print(f"Removed existing database: {DATABASE_PATH}")
 
     conn = sqlite3.connect(DATABASE_PATH)
     cursor = conn.cursor()
@@ -135,9 +135,7 @@ def create_database():
         vs_lhb_hh_pct REAL DEFAULT 0,
         vs_rhb_hh_pct REAL DEFAULT 0,
         vs_lhb_xslg REAL DEFAULT 0,
-        vs_rhb_xslg REAL DEFAULT 0,
-
-        FOREIGN KEY (mlbam_id) REFERENCES players(mlbam_id) -- We'll create players table if needed
+        vs_rhb_xslg REAL DEFAULT 0
     );
     """)
 
